@@ -32,6 +32,19 @@ Aplikacja wykorzystuje nowoczesny **Cyberpunk + Liquid Glass** design z:
 
 ---
 
+## 🔧 Ostatnie zmiany
+
+### Poprawki (Luty 2025)
+
+- ✅ **Obsługa błędów** - Wszystkie endpointy API mają teraz try/catch i zwracają odpowiednie kody HTTP (400, 404, 500)
+- ✅ **Walidacja danych** - API waliduje wymagane pola (firstName, lastName, birthDate, etc.)
+- ✅ **Error handling w frontendzie** - AppContext ma teraz stan błędów i funkcję `clearError()`
+- ✅ **Memoizacja komponentów** - ExerciseCard, PatientCard, PlanCard używają React.memo()
+- ✅ **Refaktoryzacja CSS** - Standaryzacja klas (np. `text-neon-cyan` zamiast `text-[#00f0ff]`)
+- ✅ **Usunięcie martwego kodu** - Usunięte nieużywane pliki `storage.ts` i `seed.ts`
+
+---
+
 ## ✨ Funkcje
 
 <table>
