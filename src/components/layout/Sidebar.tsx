@@ -61,7 +61,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               onClick={handleNavClick}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 ${
                 pathname === item.href
-                  ? 'bg-gradient-to-r from-[#00f0ff]/20 to-[#b829dd]/20 text-[#00f0ff] border border-[#00f0ff]/30'
+                  ? 'bg-gradient-to-r from-neon-cyan/20 to-neon-purple/20 text-neon-cyan border border-neon-cyan/30'
                   : 'text-white/60 hover:text-white hover:bg-white/5'
               }`}
             >
