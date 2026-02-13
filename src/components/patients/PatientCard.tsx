@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import { Patient } from '@/types';
 
@@ -25,7 +26,7 @@ function calculateAge(dateString: string): number | null {
   return age;
 }
 
-export function PatientCard({ patient }: PatientCardProps) {
+function PatientCardComponent({ patient }: PatientCardProps) {
   const primaryDiagnosis = patient.diagnoses[0];
   const age = calculateAge(patient.birthDate);
   const initials = `${patient.firstName[0]}${patient.lastName[0]}`.toUpperCase();
@@ -84,3 +85,5 @@ export function PatientCard({ patient }: PatientCardProps) {
     </Link>
   );
 }
+
+export const PatientCard = memo(PatientCardComponent);

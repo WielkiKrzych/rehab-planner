@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { Exercise } from '@/types';
 
 interface ExerciseCardProps {
@@ -48,7 +49,7 @@ const bodyPartColors: Record<string, string> = {
   neck: 'bg-gray-400/20 text-gray-300',
 };
 
-export function ExerciseCard({ exercise }: ExerciseCardProps) {
+function ExerciseCardComponent({ exercise }: ExerciseCardProps) {
   return (
     <div className="group glass-card rounded-xl p-5 hover:border-neon-cyan/40 transition-all duration-300 cursor-pointer h-full border border-neon-cyan/10 hover:shadow-lg hover:shadow-neon-cyan/10">
       <div className="flex flex-col h-full">
@@ -98,3 +99,5 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
     </div>
   );
 }
+
+export const ExerciseCard = memo(ExerciseCardComponent);

@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import { RehabilitationPlan } from '@/types';
 
@@ -13,7 +14,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   completed: { label: 'Zakończony', className: 'bg-neon-pink/20 text-neon-pink border-neon-pink/40' },
 };
 
-export function PlanCard({ plan }: PlanCardProps) {
+function PlanCardComponent({ plan }: PlanCardProps) {
   const status = statusConfig[plan.status];
   const weekCount = plan.weeks.length;
   const totalExercises = plan.weeks.reduce(
@@ -83,3 +84,5 @@ export function PlanCard({ plan }: PlanCardProps) {
     </Link>
   );
 }
+
+export const PlanCard = memo(PlanCardComponent);
