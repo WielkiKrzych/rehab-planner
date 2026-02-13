@@ -59,23 +59,31 @@ function transformPlan(plan: DbPlanWithIncludes): RehabilitationPlan {
 }
 
 export async function GET() {
-  const plans = await prisma.plan.findMany({
-    include: {
-      patient: true,
-      weeks: {
-        include: {
-          days: {
-            include: {
-              exercises: true,
+  try {
+    const plans = await prisma.plan.findMany({
+      include: {
+        patient: true,
+        weeks: {
+          include: {
+            days: {
+              include: {
+                exercises: true,
+              },
             },
           },
         },
       },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-  
-  return NextResponse.json(plans.map(transformPlan));
+      orderBy: { createdAt: 'desc' },
+    });
+    
+    return NextResponse.json(plans.map(transformPlan));
+  } catch (error) {
+    console.error('Failed to fetch plans:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch plans' },
+      { status: 500 }
+    );
+  }
 }
 
 type PlanInput = {
@@ -101,48 +109,63 @@ type PlanInput = {
 };
 
 export async function POST(request: NextRequest) {
-  const body: PlanInput = await request.json();
-  
-  const plan = await prisma.plan.create({
-    data: {
-      name: body.name,
-      description: body.description || null,
-      patientId: body.patientId || null,
-      status: body.status || 'template',
-      weeks: {
-        create: body.weeks?.map((week) => ({
-          weekNumber: week.weekNumber,
-          focus: week.focus || null,
-          days: {
-            create: week.days?.map((day) => ({
-              dayNumber: day.dayNumber,
-              notes: day.notes || null,
-              exercises: {
-                create: day.exercises?.map((ex) => ({
-                  exerciseId: ex.exerciseId,
-                  sets: ex.sets || 3,
-                  reps: ex.reps || 10,
-                  holdSeconds: ex.holdSeconds || null,
-                  notes: ex.notes || null,
-                })) || [],
-              },
-            })) || [],
-          },
-        })) || [],
+  try {
+    const body: PlanInput = await request.json();
+    
+    if (!body.name?.trim()) {
+      return NextResponse.json(
+        { error: 'Missing required field: name' },
+        { status: 400 }
+      );
+    }
+    
+    const plan = await prisma.plan.create({
+      data: {
+        name: body.name.trim(),
+        description: body.description || null,
+        patientId: body.patientId || null,
+        status: body.status || 'template',
+        weeks: {
+          create: body.weeks?.map((week) => ({
+            weekNumber: week.weekNumber,
+            focus: week.focus || null,
+            days: {
+              create: week.days?.map((day) => ({
+                dayNumber: day.dayNumber,
+                notes: day.notes || null,
+                exercises: {
+                  create: day.exercises?.map((ex) => ({
+                    exerciseId: ex.exerciseId,
+                    sets: ex.sets || 3,
+                    reps: ex.reps || 10,
+                    holdSeconds: ex.holdSeconds || null,
+                    notes: ex.notes || null,
+                  })) || [],
+                },
+              })) || [],
+            },
+          })) || [],
+        },
       },
-    },
-    include: {
-      weeks: {
-        include: {
-          days: {
-            include: {
-              exercises: true,
+      include: {
+        weeks: {
+          include: {
+            days: {
+              include: {
+                exercises: true,
+              },
             },
           },
         },
       },
-    },
-  });
-  
-  return NextResponse.json(transformPlan(plan));
+    });
+    
+    return NextResponse.json(transformPlan(plan));
+  } catch (error) {
+    console.error('Failed to create plan:', error);
+    return NextResponse.json(
+      { error: 'Failed to create plan' },
+      { status: 500 }
+    );
+  }
 }
