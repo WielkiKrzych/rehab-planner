@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Layout } from '@/components/layout/Layout';
 import { PatientForm } from '@/components/patients/PatientForm';
 import { useApp } from '@/context/AppContext';
-import { Patient } from '@/types';
 
 interface PatientFormData {
   firstName: string;
@@ -18,24 +17,17 @@ interface PatientFormData {
 
 export default function NewPatientPage() {
   const router = useRouter();
-  const { patients, setPatients } = useApp();
+  const { addPatient } = useApp();
 
-  const handleSubmit = (formData: PatientFormData) => {
-    const now = new Date().toISOString();
-    const newPatient: Patient = {
-      id: Date.now().toString(),
+  const handleSubmit = async (formData: PatientFormData) => {
+    const newPatient = await addPatient({
       firstName: formData.firstName,
       lastName: formData.lastName,
       birthDate: formData.birthDate,
       phone: formData.phone || undefined,
       email: formData.email || undefined,
-      diagnoses: [],
       notes: formData.notes,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    setPatients([...patients, newPatient]);
+    });
     router.push(`/patients/${newPatient.id}`);
   };
 

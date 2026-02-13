@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Patient {
+  id            String       @id @default(cuid())
+  firstName     String
+  lastName      String
+  birthDate     String
+  phone         String?
+  email         String?
+  notes         String       @default("")
+  activePlanId  String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  
+  diagnoses     Diagnosis[]
+  plans         Plan[]
+  
+  @@map("patients")
+}
+
+model Diagnosis {
+  id          String   @id @default(cuid())
+  name        String
+  date        String
+  notes       String?
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  
+  @@map("diagnoses")
+}
+
+model Plan {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  patientId   String?
+  status      String      @default("template")
+  createdAt   DateTime    @default(now())
+  
+  patient     Patient?    @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  weeks       PlanWeek[]
+  
+  @@map("plans")
+}
+
+model PlanWeek {
+  id          String      @id @default(cuid())
+  weekNumber  Int
+  focus       String?
+  planId      String
+  plan        Plan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  days        PlanDay[]
+  
+  @@map("plan_weeks")
+}
+
+model PlanDay {
+  id          String          @id @default(cuid())
+  dayNumber   Int
+  notes       String?
+  weekId      String
+  week        PlanWeek        @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  exercises   PlanExercise[]
+  
+  @@map("plan_days")
+}
+
+model PlanExercise {
+  id          String   @id @default(cuid())
+  exerciseId  String
+  sets        Int      @default(3)
+  reps        Int      @default(10)
+  holdSeconds Int?
+  notes       String?
+  dayId       String
+  day         PlanDay  @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  
+  @@map("plan_exercises")
+}
+
+model Exercise {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  bodyPart    String
+  difficulty  Int
+  duration    Int?
+  reps        Int?
+  sets        Int?
+  equipment   String   @default("")
+  imageUrl    String?
+  tags        String   @default("")
+  isDefault   Boolean  @default(false)
+  
+  @@map("exercises")
+}

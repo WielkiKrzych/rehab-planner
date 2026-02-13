@@ -19,7 +19,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 export default function PlanDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { plans, setPlans, exercises, patients, isLoading } = useApp();
+  const { plans, updatePlan, exercises, patients, isLoading } = useApp();
   const [selectedWeek, setSelectedWeek] = useState(0);
 
   const plan = useMemo(() => {
@@ -35,14 +35,11 @@ export default function PlanDetailPage() {
     return exercises.find((ex) => ex.id === id);
   };
 
-  const handleCompletePlan = () => {
+  const handleCompletePlan = async () => {
     if (!plan) return;
     if (!confirm('Czy na pewno chcesz zakończyć ten plan?')) return;
 
-    const updatedPlans = plans.map((p) =>
-      p.id === plan.id ? { ...p, status: 'completed' as const } : p
-    );
-    setPlans(updatedPlans);
+    await updatePlan(plan.id, { status: 'completed' });
   };
 
   if (isLoading) {

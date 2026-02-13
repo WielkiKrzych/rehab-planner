@@ -41,7 +41,7 @@ function createEmptyWeek(weekNumber: number): PlanWeek {
 
 export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
   const router = useRouter();
-  const { exercises, patients, plans, setPlans } = useApp();
+  const { exercises, patients, addPlan } = useApp();
 
   const [name, setName] = useState(initialPlan?.name || '');
   const [description, setDescription] = useState(initialPlan?.description || '');
@@ -157,26 +157,22 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
 
     setIsSaving(true);
 
-    const plan: RehabilitationPlan = {
-      id: initialPlan?.id || `plan-${Date.now()}`,
-      name: name.trim(),
-      description: description.trim() || undefined,
-      patientId: status === 'active' ? patientId : undefined,
-      weeks,
-      createdAt: initialPlan?.createdAt || new Date().toISOString(),
-      status,
-    };
+    try {
+      const newPlan = await addPlan({
+        name: name.trim(),
+        description: description.trim() || undefined,
+        patientId: status === 'active' ? patientId : undefined,
+        weeks,
+        status,
+      });
 
-    let newPlans: RehabilitationPlan[];
-    if (initialPlan) {
-      newPlans = plans.map((p) => (p.id === initialPlan.id ? plan : p));
-    } else {
-      newPlans = [...plans, plan];
+      router.push(`/plans/${newPlan.id}`);
+    } catch (error) {
+      console.error('Failed to save plan:', error);
+      alert('Nie udało się zapisać planu');
+    } finally {
+      setIsSaving(false);
     }
-
-    setPlans(newPlans);
-    setIsSaving(false);
-    router.push(`/plans/${plan.id}`);
   };
 
   return (

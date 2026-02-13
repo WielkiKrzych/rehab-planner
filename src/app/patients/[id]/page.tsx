@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Layout } from '@/components/layout/Layout';
 import { useApp } from '@/context/AppContext';
-import { Diagnosis, RehabilitationPlan } from '@/types';
+import { RehabilitationPlan } from '@/types';
 
 function formatBirthDate(dateString: string): string {
   if (!dateString) return 'Nie podano';
@@ -22,7 +22,7 @@ function formatDate(dateString: string): string {
 export default function PatientDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { patients, setPatients, plans, setPlans, isLoading } = useApp();
+  const { patients, plans, isLoading, addDiagnosis, addPlan, updatePatient } = useApp();
   const [isDiagnosisModalOpen, setIsDiagnosisModalOpen] = useState(false);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [diagnosisForm, setDiagnosisForm] = useState({
@@ -66,47 +66,34 @@ export default function PatientDetailPage() {
     );
   }
 
-  const handleAddDiagnosis = () => {
+  const handleAddDiagnosis = async () => {
     if (!diagnosisForm.name.trim()) return;
 
-    const newDiagnosis: Diagnosis = {
-      id: Date.now().toString(),
+    await addDiagnosis(patient.id, {
       name: diagnosisForm.name,
       date: diagnosisForm.date,
       notes: diagnosisForm.notes || undefined,
-    };
-
-    const updatedPatient = {
-      ...patient,
-      diagnoses: [...patient.diagnoses, newDiagnosis],
-      updatedAt: new Date().toISOString(),
-    };
-
-    setPatients(patients.map((p) => (p.id === patient.id ? updatedPatient : p)));
+    });
+    
     setIsDiagnosisModalOpen(false);
     setDiagnosisForm({ name: '', date: new Date().toISOString().split('T')[0], notes: '' });
   };
 
-  const handleAssignPlan = (templateId: string) => {
+  const handleAssignPlan = async (templateId: string) => {
     const template = plans.find(p => p.id === templateId);
     if (!template) return;
 
-    const newPlan: RehabilitationPlan = {
-      ...template,
-      id: Date.now().toString(),
+    const newPlanData: Omit<RehabilitationPlan, 'id' | 'createdAt'> = {
+      name: template.name,
+      description: template.description,
       patientId: patient.id,
       status: 'active',
-      createdAt: new Date().toISOString(),
+      weeks: template.weeks,
     };
-
-    setPlans([...plans, newPlan]);
     
-    const updatedPatientWithPlan = {
-      ...patient,
-      activePlanId: newPlan.id,
-      updatedAt: new Date().toISOString(),
-    };
-    setPatients(patients.map((p) => (p.id === patient.id ? updatedPatientWithPlan : p)));
+    const newPlan = await addPlan(newPlanData);
+    
+    await updatePatient(patient.id, { activePlanId: newPlan.id });
     
     setIsPlanModalOpen(false);
     router.push(`/plans/${newPlan.id}`);

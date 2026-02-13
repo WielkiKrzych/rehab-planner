@@ -18,7 +18,7 @@ interface PatientFormData {
 export default function EditPatientPage() {
   const params = useParams();
   const router = useRouter();
-  const { patients, setPatients } = useApp();
+  const { patients, updatePatient } = useApp();
 
   const patient = patients.find((p) => p.id === params.id);
 
@@ -35,19 +35,15 @@ export default function EditPatientPage() {
     );
   }
 
-  const handleSubmit = (formData: PatientFormData) => {
-    const updatedPatient = {
-      ...patient,
+  const handleSubmit = async (formData: PatientFormData) => {
+    await updatePatient(patient.id, {
       firstName: formData.firstName,
       lastName: formData.lastName,
       birthDate: formData.birthDate,
       phone: formData.phone || undefined,
       email: formData.email || undefined,
       notes: formData.notes,
-      updatedAt: new Date().toISOString(),
-    };
-
-    setPatients(patients.map((p) => (p.id === patient.id ? updatedPatient : p)));
+    });
     router.push(`/patients/${patient.id}`);
   };
 

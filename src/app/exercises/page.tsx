@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { ExerciseList } from '@/components/exercises/ExerciseList';
 import { useApp } from '@/context/AppContext';
-import { seedDatabase } from '@/lib/seed';
 import { ExerciseCategory, BodyPart } from '@/types';
 
 const categoryOptions: { value: ExerciseCategory | ''; label: string }[] = [
@@ -25,21 +24,9 @@ const bodyPartOptions: { value: BodyPart | ''; label: string }[] = [
 ];
 
 export default function ExercisesPage() {
-  const { exercises, setExercises, isLoading } = useApp();
+  const { exercises, isLoading } = useApp();
   const [categoryFilter, setCategoryFilter] = useState<ExerciseCategory | ''>('');
   const [bodyPartFilter, setBodyPartFilter] = useState<BodyPart | ''>('');
-
-  useEffect(() => {
-    if (exercises.length === 0 && !isLoading) {
-      const seeded = seedDatabase();
-      if (seeded) {
-        // Re-fetch from storage after seeding
-        import('@/lib/storage').then(({ storage }) => {
-          setExercises(storage.getExercises());
-        });
-      }
-    }
-  }, [exercises.length, isLoading, setExercises]);
 
   const filteredExercises = exercises.filter((exercise) => {
     if (categoryFilter && exercise.category !== categoryFilter) return false;
