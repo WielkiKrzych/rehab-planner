@@ -4,15 +4,31 @@
 
 **Profesjonalna aplikacja dla fizjoterapeutów do zarządzania planami rehabilitacji**
 
+*Z futurystycznym interfejsem w stylu Cyberpunk*
+
 [![Next.js](https://img.shields.io/badge/Next.js%2016-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React%2019-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS%204-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://prisma.io/)
+[![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 [Demo](#-demo) • [Funkcje](#-funkcje) • [Instalacja](#-instalacja) • [Użycie](#-użycie)
 
 </div>
+
+---
+
+## 🎨 Design
+
+Aplikacja wykorzystuje nowoczesny **Cyberpunk + Liquid Glass** design z:
+
+- 🌙 **Ciemne tło** (#0a0a0f) z neonowymi akcentami
+- ✨ **Neonowe kolory** - cyan (#00f0ff), pink (#ff00ff), purple (#b829dd), green (#00ff88)
+- 🔮 **Glass morphism** - efekt szkła z rozmyciem i przezroczystością
+- 🌈 **Gradient text** - neonowe gradienty na nagłówkach
+- ⚡ **Animacje** - płynne przejścia i efekty hover
 
 ---
 
@@ -114,8 +130,9 @@ src/
 │
 ├── 🔄 context/                # React Context (State)
 ├── 📊 data/                   # Seed data (30 ćwiczeń)
-├── 🛠️ lib/                    # Utilities & Storage
-└── 📝 types/                  # TypeScript Types
+├── 🛠️ lib/                    # Utilities & Prisma client
+├── 📝 types/                  # TypeScript Types
+└── 📂 prisma/                 # Database schema & migrations
 ```
 
 ---
@@ -127,8 +144,9 @@ src/
 | **Framework** | Next.js 16 (App Router) |
 | **UI** | React 19 + Tailwind CSS 4 |
 | **Język** | TypeScript |
-| **Storage** | localStorage (bez backendu) |
+| **Database** | SQLite + Prisma ORM |
 | **State** | React Context + Hooks |
+| **Design** | Cyberpunk + Liquid Glass |
 
 ---
 

@@ -37,7 +37,7 @@ export default function NewPatientPage() {
         <div className="mb-6">
           <Link
             href="/patients"
-            className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors"
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-300 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -46,8 +46,8 @@ export default function NewPatientPage() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Nowy pacjent</h1>
+        <div className="glass-card rounded-xl p-8 border border-neon-cyan/20">
+          <h1 className="text-2xl font-bold gradient-text mb-6">Nowy pacjent</h1>
           <PatientForm
             onSubmit={handleSubmit}
             onCancel={() => router.push('/patients')}

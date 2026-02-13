@@ -61,47 +61,43 @@ export function PatientForm({ patient, onSubmit, onCancel }: PatientFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1.5">
-            Imię <span className="text-red-500">*</span>
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-1.5">
+            Imię <span className="text-neon-pink">*</span>
           </label>
           <input
             type="text"
             id="firstName"
             value={formData.firstName}
             onChange={(e) => updateField('firstName', e.target.value)}
-            className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all ${
-              errors.firstName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-            }`}
+            className={`form-input w-full px-4 py-2.5 ${errors.firstName ? 'border-neon-pink bg-neon-pink/5' : ''}`}
             placeholder="Jan"
           />
           {errors.firstName && (
-            <p className="mt-1.5 text-sm text-red-600">{errors.firstName}</p>
+            <p className="mt-1.5 text-sm text-neon-pink">{errors.firstName}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1.5">
-            Nazwisko <span className="text-red-500">*</span>
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-1.5">
+            Nazwisko <span className="text-neon-pink">*</span>
           </label>
           <input
             type="text"
             id="lastName"
             value={formData.lastName}
             onChange={(e) => updateField('lastName', e.target.value)}
-            className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all ${
-              errors.lastName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-            }`}
+            className={`form-input w-full px-4 py-2.5 ${errors.lastName ? 'border-neon-pink bg-neon-pink/5' : ''}`}
             placeholder="Kowalski"
           />
           {errors.lastName && (
-            <p className="mt-1.5 text-sm text-red-600">{errors.lastName}</p>
+            <p className="mt-1.5 text-sm text-neon-pink">{errors.lastName}</p>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor="birthDate" className="block text-sm font-medium text-gray-300 mb-1.5">
             Data urodzenia
           </label>
           <input
@@ -109,12 +105,12 @@ export function PatientForm({ patient, onSubmit, onCancel }: PatientFormProps) {
             id="birthDate"
             value={formData.birthDate}
             onChange={(e) => updateField('birthDate', e.target.value)}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+            className="form-input w-full px-4 py-2.5"
           />
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1.5">
             Telefon
           </label>
           <input
@@ -122,14 +118,14 @@ export function PatientForm({ patient, onSubmit, onCancel }: PatientFormProps) {
             id="phone"
             value={formData.phone}
             onChange={(e) => updateField('phone', e.target.value)}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+            className="form-input w-full px-4 py-2.5"
             placeholder="+48 123 456 789"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1.5">
           Email
         </label>
         <input
@@ -137,13 +133,13 @@ export function PatientForm({ patient, onSubmit, onCancel }: PatientFormProps) {
           id="email"
           value={formData.email}
           onChange={(e) => updateField('email', e.target.value)}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+          className="form-input w-full px-4 py-2.5"
           placeholder="jan.kowalski@email.com"
         />
       </div>
 
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label htmlFor="notes" className="block text-sm font-medium text-gray-300 mb-1.5">
           Notatki
         </label>
         <textarea
@@ -151,22 +147,22 @@ export function PatientForm({ patient, onSubmit, onCancel }: PatientFormProps) {
           value={formData.notes}
           onChange={(e) => updateField('notes', e.target.value)}
           rows={4}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all resize-none"
+          className="form-input w-full px-4 py-2.5 resize-none"
           placeholder="Dodatkowe informacje o pacjencie..."
         />
       </div>
 
-      <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+      <div className="flex items-center gap-3 pt-4 border-t border-neon-cyan/10">
         <button
           type="submit"
-          className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-medium rounded-lg hover:from-teal-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-sm hover:shadow-md"
+          className="btn-neon px-6 py-2.5"
         >
           {patient ? 'Zapisz zmiany' : 'Dodaj pacjenta'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2.5 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all"
+          className="px-6 py-2.5 bg-white/5 text-gray-300 font-medium rounded-lg border border-gray-600 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all"
         >
           Anuluj
         </button>

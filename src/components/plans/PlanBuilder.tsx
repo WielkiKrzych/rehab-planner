@@ -177,10 +177,10 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="glass-card rounded-xl p-6 border border-neon-cyan/20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Nazwa planu *
             </label>
             <input
@@ -188,11 +188,11 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="np. Rehabilitacja po urazie ACL"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+              className="form-input w-full px-4 py-2.5"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Opis (opcjonalnie)
             </label>
             <input
@@ -200,15 +200,15 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Krótki opis planu"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+              className="form-input w-full px-4 py-2.5"
             />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 p-4 max-h-[600px] overflow-hidden flex flex-col">
-          <h3 className="font-semibold text-gray-900 mb-3">Baza ćwiczeń</h3>
+        <div className="lg:col-span-1 glass-card rounded-xl p-4 max-h-[600px] overflow-hidden flex flex-col border border-neon-cyan/20">
+          <h3 className="font-semibold text-white mb-3">Baza ćwiczeń</h3>
 
           <div className="space-y-2 mb-3">
             <input
@@ -216,13 +216,13 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Szukaj ćwiczenia..."
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="form-input w-full px-3 py-2 text-sm"
             />
             <div className="flex gap-2">
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value as ExerciseCategory | '')}
-                className="flex-1 px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="form-input flex-1 px-2 py-1.5 text-sm"
               >
                 <option value="">Kategoria</option>
                 {Object.entries(categoryLabels).map(([value, label]) => (
@@ -234,7 +234,7 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
               <select
                 value={bodyPartFilter}
                 onChange={(e) => setBodyPartFilter(e.target.value as BodyPart | '')}
-                className="flex-1 px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="form-input flex-1 px-2 py-1.5 text-sm"
               >
                 <option value="">Ciało</option>
                 {Object.entries(bodyPartLabels).map(([value, label]) => (
@@ -248,7 +248,7 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
 
           <div className="flex-1 overflow-y-auto space-y-2 pr-1">
             {filteredExercises.length === 0 ? (
-              <p className="text-center text-gray-400 text-sm py-8">
+              <p className="text-center text-gray-500 text-sm py-8">
                 Brak ćwiczeń pasujących do filtrów
               </p>
             ) : (
@@ -256,24 +256,24 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
                 <button
                   key={exercise.id}
                   onClick={() => addExerciseToDay(exercise)}
-                  className="w-full text-left p-3 bg-gray-50 hover:bg-teal-50 hover:border-teal-200 border border-gray-100 rounded-lg transition-all group"
+                  className="w-full text-left p-3 bg-white/5 hover:bg-neon-cyan/10 hover:border-neon-cyan/40 border border-neon-cyan/20 rounded-lg transition-all group"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 text-sm truncate group-hover:text-teal-700">
+                      <p className="font-medium text-white text-sm truncate group-hover:text-neon-cyan">
                         {exercise.name}
                       </p>
                       <div className="flex gap-1 mt-1">
-                        <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                        <span className="px-1.5 py-0.5 text-xs bg-neon-purple/20 text-neon-purple rounded">
                           {categoryLabels[exercise.category]}
                         </span>
-                        <span className="px-1.5 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">
+                        <span className="px-1.5 py-0.5 text-xs bg-neon-cyan/20 text-neon-cyan rounded">
                           {bodyPartLabels[exercise.bodyPart]}
                         </span>
                       </div>
                     </div>
                     <svg
-                      className="w-5 h-5 text-gray-300 group-hover:text-teal-500 transition-colors shrink-0 ml-2"
+                      className="w-5 h-5 text-gray-500 group-hover:text-neon-cyan transition-colors shrink-0 ml-2"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -287,16 +287,16 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4 overflow-hidden flex flex-col">
-          <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-3">
+        <div className="lg:col-span-2 glass-card rounded-xl p-4 overflow-hidden flex flex-col border border-neon-cyan/20">
+          <div className="flex items-center gap-2 mb-4 border-b border-neon-cyan/10 pb-3">
             {weeks.map((week, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedWeek(index)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedWeek === index
-                    ? 'bg-teal-500 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-neon-cyan to-neon-purple text-white shadow-lg shadow-neon-cyan/30'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-300'
                 }`}
               >
                 Tydzień {week.weekNumber}
@@ -304,14 +304,14 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
             ))}
             <button
               onClick={addWeek}
-              className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-all"
+              className="px-3 py-2 rounded-lg text-sm font-medium bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-300 transition-all border border-neon-cyan/20"
             >
               + Dodaj tydzień
             </button>
             {weeks.length > 1 && (
               <button
                 onClick={() => removeWeek(selectedWeek)}
-                className="ml-auto px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
+                className="ml-auto px-3 py-2 rounded-lg text-sm font-medium text-neon-pink hover:bg-neon-pink/10 transition-all"
               >
                 Usuń tydzień
               </button>
@@ -326,16 +326,16 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
                   onClick={() => setSelectedDay(dayIndex)}
                   className={`p-2 rounded-lg border-2 transition-all cursor-pointer min-h-[300px] ${
                     selectedDay === dayIndex
-                      ? 'border-teal-400 bg-teal-50'
-                      : 'border-gray-100 bg-gray-50 hover:border-gray-200'
+                      ? 'border-neon-cyan bg-neon-cyan/10 shadow-lg shadow-neon-cyan/20'
+                      : 'border-neon-cyan/10 bg-white/5 hover:border-neon-cyan/30'
                   }`}
                 >
-                  <p className="font-medium text-sm text-gray-700 text-center mb-2 pb-2 border-b border-gray-200">
+                  <p className="font-medium text-sm text-neon-cyan text-center mb-2 pb-2 border-b border-neon-cyan/20">
                     {dayNames[dayIndex]}
                   </p>
                   <div className="space-y-2">
                     {day.exercises.length === 0 ? (
-                      <p className="text-xs text-gray-400 text-center py-4">Kliknij ćwiczenie</p>
+                      <p className="text-xs text-gray-500 text-center py-4">Kliknij ćwiczenie</p>
                     ) : (
                       day.exercises.map((planEx, exIndex) => {
                         const exercise = getExerciseById(planEx.exerciseId);
@@ -343,10 +343,10 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
                         return (
                           <div
                             key={exIndex}
-                            className="bg-white p-2 rounded border border-gray-200 text-xs group relative"
+                            className="bg-white/5 p-2 rounded border border-neon-cyan/20 text-xs group relative"
                           >
-                            <p className="font-medium text-gray-800 truncate pr-4">{exercise.name}</p>
-                            <div className="flex items-center gap-1 mt-1 text-gray-500">
+                            <p className="font-medium text-white truncate pr-4">{exercise.name}</p>
+                            <div className="flex items-center gap-1 mt-1 text-gray-400">
                               <input
                                 type="number"
                                 value={planEx.sets}
@@ -356,7 +356,7 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
                                   })
                                 }
                                 onClick={(e) => e.stopPropagation()}
-                                className="w-8 px-1 py-0.5 border border-gray-200 rounded text-center"
+                                className="w-8 px-1 py-0.5 bg-white/5 border border-neon-cyan/30 rounded text-center text-white"
                               />
                               <span>x</span>
                               <input
@@ -368,18 +368,18 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
                                   })
                                 }
                                 onClick={(e) => e.stopPropagation()}
-                                className="w-8 px-1 py-0.5 border border-gray-200 rounded text-center"
+                                className="w-8 px-1 py-0.5 bg-white/5 border border-neon-cyan/30 rounded text-center text-white"
                               />
                             </div>
                             {planEx.holdSeconds && (
-                              <p className="text-gray-400 mt-0.5">{planEx.holdSeconds}s</p>
+                              <p className="text-gray-500 mt-0.5">{planEx.holdSeconds}s</p>
                             )}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 removeExerciseFromDay(dayIndex, exIndex);
                               }}
-                              className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center text-gray-300 hover:text-red-500 transition-colors"
+                              className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center text-gray-500 hover:text-neon-pink transition-colors"
                             >
                               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -395,17 +395,17 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-gray-100 text-sm text-gray-500">
+          <div className="mt-4 pt-3 border-t border-neon-cyan/10 text-sm text-gray-400">
             Wybrany dzień: {dayNames[selectedDay]}, Tydzień {selectedWeek + 1}
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <div className="glass-card rounded-xl p-4 border border-neon-cyan/20">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <button
             onClick={() => router.push('/plans')}
-            className="px-5 py-2.5 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+            className="px-5 py-2.5 text-gray-400 hover:text-gray-300 font-medium transition-colors"
           >
             Anuluj
           </button>
@@ -413,14 +413,14 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
             <button
               onClick={() => savePlan('template')}
               disabled={isSaving || !name.trim()}
-              className="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="px-5 py-2.5 border border-neon-purple/30 text-neon-purple font-medium rounded-lg hover:bg-neon-purple/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               Zapisz jako szablon
             </button>
             <button
               onClick={() => setShowPatientSelector(true)}
               disabled={isSaving || !name.trim()}
-              className="px-5 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-medium rounded-lg hover:from-teal-600 hover:to-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+              className="btn-neon px-5 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Zapisz i przypisz
             </button>
@@ -429,13 +429,13 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
       </div>
 
       {showPatientSelector && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Przypisz do pacjenta</h3>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="glass-card rounded-xl max-w-md w-full p-6 border border-neon-cyan/30">
+            <h3 className="text-lg font-semibold text-white mb-4">Przypisz do pacjenta</h3>
             <select
               value={selectedPatientId}
               onChange={(e) => setSelectedPatientId(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 mb-4"
+              className="form-input w-full px-4 py-2.5 mb-4"
             >
               <option value="">Wybierz pacjenta...</option>
               {patients.map((patient) => (
@@ -450,7 +450,7 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
                   setShowPatientSelector(false);
                   setSelectedPatientId('');
                 }}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                className="px-4 py-2 text-gray-400 hover:text-gray-300 font-medium"
               >
                 Anuluj
               </button>
@@ -461,7 +461,7 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
                   }
                 }}
                 disabled={!selectedPatientId}
-                className="px-4 py-2 bg-teal-500 text-white font-medium rounded-lg hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-neon px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Zapisz
               </button>

@@ -8,9 +8,9 @@ interface PlanCardProps {
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  template: { label: 'Szablon', className: 'bg-blue-100 text-blue-700 border-blue-200' },
-  active: { label: 'Aktywny', className: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  completed: { label: 'Zakończony', className: 'bg-gray-100 text-gray-600 border-gray-200' },
+  template: { label: 'Szablon', className: 'bg-neon-purple/20 text-neon-purple border-neon-purple/40' },
+  active: { label: 'Aktywny', className: 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/40' },
+  completed: { label: 'Zakończony', className: 'bg-neon-pink/20 text-neon-pink border-neon-pink/40' },
 };
 
 export function PlanCard({ plan }: PlanCardProps) {
@@ -23,10 +23,10 @@ export function PlanCard({ plan }: PlanCardProps) {
 
   return (
     <Link href={`/plans/${plan.id}`}>
-      <div className="group bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-lg hover:border-teal-200 transition-all duration-300 cursor-pointer h-full">
+      <div className="group glass-card rounded-xl p-5 hover:border-neon-cyan/40 transition-all duration-300 cursor-pointer h-full border border-neon-cyan/10 hover:shadow-lg hover:shadow-neon-cyan/10">
         <div className="flex flex-col h-full">
           <div className="flex items-start justify-between gap-3 mb-3">
-            <h3 className="font-semibold text-gray-900 group-hover:text-teal-700 transition-colors line-clamp-2">
+            <h3 className="font-semibold text-white group-hover:text-neon-cyan transition-colors line-clamp-2">
               {plan.name}
             </h3>
             <span
@@ -37,14 +37,14 @@ export function PlanCard({ plan }: PlanCardProps) {
           </div>
 
           {plan.description && (
-            <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-grow">
+            <p className="text-sm text-gray-400 line-clamp-2 mb-4 flex-grow">
               {plan.description}
             </p>
           )}
 
-          <div className="flex items-center gap-4 text-sm text-gray-400 mt-auto pt-3 border-t border-gray-50">
+          <div className="flex items-center gap-4 text-sm text-gray-500 mt-auto pt-3 border-t border-neon-cyan/10">
             <div className="flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-neon-cyan" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -57,7 +57,7 @@ export function PlanCard({ plan }: PlanCardProps) {
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-neon-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -72,7 +72,7 @@ export function PlanCard({ plan }: PlanCardProps) {
           </div>
 
           <div className="flex justify-end mt-3">
-            <div className="text-gray-300 group-hover:text-teal-500 transition-colors">
+            <div className="text-gray-600 group-hover:text-neon-cyan transition-colors">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>

@@ -33,7 +33,7 @@ export default function Home() {
     return (
       <Layout>
         <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-[#00f0ff] border-t-transparent rounded-full animate-spin"></div>
         </div>
       </Layout>
     );
@@ -41,63 +41,66 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Witaj w Rehab Planner - aplikacji do zarządzania planami rehabilitacji.</p>
+          <h1 className="text-4xl font-bold mb-2">
+            <span className="text-white">Witaj w </span>
+            <span className="gradient-text glow-text">Rehab Planner</span>
+          </h1>
+          <p className="text-white/50 text-lg">Aplikacja do zarządzania planami rehabilitacji dla fizjoterapeutów.</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link href="/patients" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-teal-200 transition-all group">
+          <Link href="/patients" className="glass-card rounded-2xl p-6 hover:scale-[1.02] transition-all group">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Pacjenci</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.patients}</p>
+                <p className="text-sm font-medium text-white/50">Pacjenci</p>
+                <p className="text-4xl font-bold gradient-text mt-1">{stats.patients}</p>
               </div>
-              <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center group-hover:bg-teal-200 transition-colors">
-                <svg className="w-6 h-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center transition-all" style={{ background: 'rgba(0, 240, 255, 0.2)', border: '1px solid rgba(0, 240, 255, 0.3)' }}>
+                <svg className="w-7 h-7 text-[#00f0ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
             </div>
           </Link>
 
-          <Link href="/plans" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-emerald-200 transition-all group">
+          <Link href="/plans" className="glass-card rounded-2xl p-6 hover:scale-[1.02] transition-all group">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Aktywne plany</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.activePlans}</p>
+                <p className="text-sm font-medium text-white/50">Aktywne plany</p>
+                <p className="text-4xl font-bold text-[#00ff88] mt-1">{stats.activePlans}</p>
               </div>
-              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
-                <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: 'rgba(0, 255, 136, 0.2)', border: '1px solid rgba(0, 255, 136, 0.3)' }}>
+                <svg className="w-7 h-7 text-[#00ff88]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
               </div>
             </div>
           </Link>
 
-          <Link href="/exercises" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all group">
+          <Link href="/exercises" className="glass-card rounded-2xl p-6 hover:scale-[1.02] transition-all group">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Ćwiczenia</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.exercises}</p>
+                <p className="text-sm font-medium text-white/50">Ćwiczenia</p>
+                <p className="text-4xl font-bold text-[#b829dd] mt-1">{stats.exercises}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: 'rgba(184, 41, 221, 0.2)', border: '1px solid rgba(184, 41, 221, 0.3)' }}>
+                <svg className="w-7 h-7 text-[#b829dd]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                 </svg>
               </div>
             </div>
           </Link>
 
-          <Link href="/plans" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-purple-200 transition-all group">
+          <Link href="/plans" className="glass-card rounded-2xl p-6 hover:scale-[1.02] transition-all group">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Szablony</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.templates}</p>
+                <p className="text-sm font-medium text-white/50">Szablony</p>
+                <p className="text-4xl font-bold text-[#ff00ff] mt-1">{stats.templates}</p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255, 0, 255, 0.2)', border: '1px solid rgba(255, 0, 255, 0.3)' }}>
+                <svg className="w-7 h-7 text-[#ff00ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
                 </svg>
               </div>
@@ -106,19 +109,19 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Ostatni pacjenci</h2>
-              <Link href="/patients" className="text-sm text-teal-600 hover:text-teal-700 font-medium">
-                Zobacz wszystkich
+          <div className="glass-card rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Ostatni pacjenci</h2>
+              <Link href="/patients" className="text-sm text-[#00f0ff] hover:text-[#00f0ff]/80 font-medium transition-colors">
+                Zobacz wszystkich →
               </Link>
             </div>
             {recentPatients.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">Brak pacjentów w bazie</p>
+                <p className="text-white/40 mb-4">Brak pacjentów w bazie</p>
                 <Link
                   href="/patients/new"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500 text-white font-medium rounded-lg hover:bg-teal-600 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 btn-neon rounded-xl"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -132,20 +135,20 @@ export default function Home() {
                   <Link
                     key={patient.id}
                     href={`/patients/${patient.id}`}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-[#00f0ff]/20"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-400 rounded-full flex items-center justify-center text-white font-medium">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg" style={{ background: 'linear-gradient(135deg, #00f0ff 0%, #b829dd 100%)' }}>
                         {patient.firstName[0]}{patient.lastName[0]}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{patient.firstName} {patient.lastName}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="font-semibold text-white">{patient.firstName} {patient.lastName}</p>
+                        <p className="text-sm text-white/40">
                           {patient.diagnoses.length > 0 ? patient.diagnoses[0].name : 'Brak diagnozy'}
                         </p>
                       </div>
                     </div>
-                    <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-5 h-5 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
@@ -154,19 +157,19 @@ export default function Home() {
             )}
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Ostatnie plany</h2>
-              <Link href="/plans" className="text-sm text-teal-600 hover:text-teal-700 font-medium">
-                Zobacz wszystkie
+          <div className="glass-card rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Ostatnie plany</h2>
+              <Link href="/plans" className="text-sm text-[#00f0ff] hover:text-[#00f0ff]/80 font-medium transition-colors">
+                Zobacz wszystkie →
               </Link>
             </div>
             {recentPlans.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">Brak planów w bazie</p>
+                <p className="text-white/40 mb-4">Brak planów w bazie</p>
                 <Link
                   href="/plans/new"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500 text-white font-medium rounded-lg hover:bg-teal-600 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 btn-neon rounded-xl"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -177,28 +180,31 @@ export default function Home() {
             ) : (
               <div className="space-y-3">
                 {recentPlans.map((plan) => {
-                  const statusColors: Record<string, string> = {
-                    template: 'bg-blue-100 text-blue-700',
-                    active: 'bg-emerald-100 text-emerald-700',
-                    completed: 'bg-gray-100 text-gray-600',
+                  const statusConfig: Record<string, { label: string; color: string }> = {
+                    template: { label: 'Szablon', color: '#00f0ff' },
+                    active: { label: 'Aktywny', color: '#00ff88' },
+                    completed: { label: 'Zakończony', color: '#ff00ff' },
                   };
-                  const statusLabels: Record<string, string> = {
-                    template: 'Szablon',
-                    active: 'Aktywny',
-                    completed: 'Zakończony',
-                  };
+                  const status = statusConfig[plan.status] || statusConfig.template;
                   return (
                     <Link
                       key={plan.id}
                       href={`/plans/${plan.id}`}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-[#00f0ff]/20"
                     >
                       <div>
-                        <p className="font-medium text-gray-900">{plan.name}</p>
-                        <p className="text-sm text-gray-500">{plan.weeks.length} tygodni</p>
+                        <p className="font-semibold text-white">{plan.name}</p>
+                        <p className="text-sm text-white/40">{plan.weeks.length} tygodni</p>
                       </div>
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${statusColors[plan.status]}`}>
-                        {statusLabels[plan.status]}
+                      <span 
+                        className="px-3 py-1 rounded-lg text-xs font-semibold"
+                        style={{ 
+                          background: `${status.color}20`, 
+                          color: status.color,
+                          border: `1px solid ${status.color}40`
+                        }}
+                      >
+                        {status.label}
                       </span>
                     </Link>
                   );

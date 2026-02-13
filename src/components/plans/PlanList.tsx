@@ -11,8 +11,8 @@ export function PlanList({ plans }: PlanListProps) {
   if (plans.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-          <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center border border-neon-cyan/20">
+          <svg className="w-8 h-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -21,8 +21,8 @@ export function PlanList({ plans }: PlanListProps) {
             />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-1">Brak planów</h3>
-        <p className="text-gray-500">Nie znaleziono planów w tej kategorii.</p>
+        <h3 className="text-lg font-medium text-white mb-1">Brak planów</h3>
+        <p className="text-gray-400">Nie znaleziono planów w tej kategorii.</p>
       </div>
     );
   }
