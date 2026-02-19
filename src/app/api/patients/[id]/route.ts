@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/authMiddleware';
+import { UpdatePatientSchema } from '@/lib/validations';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const patient = await prisma.patient.findUnique({
@@ -31,13 +36,18 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const body = await request.json();
     
-    if (!body.firstName?.trim() || !body.lastName?.trim() || !body.birthDate) {
+    const validation = UpdatePatientSchema.safeParse(body);
+    
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: firstName, lastName, birthDate' },
+        { error: 'Validation failed', details: validation.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
@@ -45,13 +55,12 @@ export async function PUT(
     const patient = await prisma.patient.update({
       where: { id },
       data: {
-        firstName: body.firstName.trim(),
-        lastName: body.lastName.trim(),
-        birthDate: body.birthDate,
-        phone: body.phone || null,
-        email: body.email || null,
-        notes: body.notes || '',
-        activePlanId: body.activePlanId || null,
+        firstName: validation.data.firstName?.trim(),
+        lastName: validation.data.lastName?.trim(),
+        birthDate: validation.data.birthDate,
+        phone: validation.data.phone || null,
+        email: validation.data.email || null,
+        notes: validation.data.notes || '',
       },
     });
     return NextResponse.json(patient);
@@ -68,6 +77,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     await prisma.patient.delete({ where: { id } });

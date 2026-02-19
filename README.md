@@ -36,10 +36,12 @@ Aplikacja wykorzystuje nowoczesny **Cyberpunk + Liquid Glass** design z:
 
 - ✅ **NextAuth.js** - Logowanie użytkowników z JWT
 - ✅ **Role-based access** - Administrator i Fizjoterapeuta
-- ✅ **Rate limiting** - Ochrona przed atakami (100 req/min)
+- ✅ **API Authentication** - Wszystkie endpointy chronione sesją
+- ✅ **Rate limiting** - Ochrona przed atakami (100 req/min) z cleanup
 - ✅ **CORS** - Konfigurowalne zasady CORS
-- ✅ **Zod validation** - Walidacja danych na serwerze
+- ✅ **Zod validation** - Walidacja danych na serwerze (wszystkie endpointy)
 - ✅ **Middleware** - Ochrona wszystkich tras
+- ✅ **Error Boundaries** - Obsługa błędów React
 
 ---
 
@@ -48,11 +50,14 @@ Aplikacja wykorzystuje nowoczesny **Cyberpunk + Liquid Glass** design z:
 | Funkcja | Opis |
 |---------|------|
 | 📊 Dashboard | Statystyki na żywo, ostatnia aktywność |
-| 👥 Pacjenci | Pełne CRUD, historia diagnoz, plany rehabilitacji |
+| 👥 Pacjenci | Pełne CRUD, historia diagnoz, plany rehabilitacji, export CSV/JSON |
 | 📑 Kreator Planów | Builder z tygodniami, dniami i ćwiczeniami |
 | 🏋️ Baza Ćwiczeń | 30+ ćwiczeń z kategoryzacją i filtrami |
-| 🔍 Wyszukiwanie | Szukaj pacjentów i ćwiczeń w czasie rzeczywistym |
+| 🔍 Wyszukiwanie | Szukaj pacjentów z debounce (300ms) |
+| 📖 API REST | Pełne REST API z paginacją i filtrami |
+| 📚 Swagger/OpenAPI | Dokumentacja API dostępna pod /docs |
 | 🐳 Docker | Uruchom w kontenerze jednym poleceniem |
+| 🧪 E2E Tests | Playwright testy dla krytycznych ścieżek użytkownika |
 
 ---
 
@@ -85,6 +90,10 @@ curl -X POST http://localhost:3000/api/seed
 
 Po uruchomieniu seed, zaloguj się używając danych admina utworzonych podczas seed.
 
+Domyślne dane:
+- **Email:** admin@example.com
+- **Hasło:** admin123
+
 ---
 
 ## 📖 Użycie
@@ -114,13 +123,30 @@ AUTH_SECRET="wygeneruj wlasny-klucz-openssl-rand-base64-32"
 src/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes
+│   │   ├── patients/      # Patients endpoints
+│   │   ├── plans/         # Plans endpoints
+│   │   ├── exercises/     # Exercises endpoints
+│   │   ├── diagnoses/     # Diagnoses endpoints
+│   │   ├── users/         # Users endpoints
+│   │   └── docs/          # Swagger docs
 │   ├── patients/          # Patients pages
 │   ├── plans/             # Plans pages
 │   ├── exercises/         # Exercises page
-│   └── login/             # Login page
+│   ├── stats/             # Statistics page
+│   ├── login/             # Login page
+│   └── docs/              # Swagger UI page
 ├── components/            # React Components
+│   ├── layout/            # Layout components
+│   ├── patients/          # Patient components
+│   ├── plans/             # Plan components
+│   └── exercises/         # Exercise components
 ├── context/               # React Context
 ├── lib/                   # Utilities
+│   ├── authMiddleware.ts  # Auth helpers
+│   ├── rateLimit.ts       # Rate limiting
+│   ├── useDebounce.ts     # Debounce hook
+│   ├── validations.ts     # Zod schemas
+│   └── prisma.ts          # Database client
 ├── test/                  # Test setup
 └── types/                 # TypeScript types
 ```
@@ -137,7 +163,8 @@ src/
 | Database | SQLite + Prisma ORM |
 | Auth | NextAuth.js (JWT) |
 | Validation | Zod |
-| Testing | Vitest + React Testing Library |
+| Testing | Vitest + React Testing Library + Playwright |
+| API Docs | Swagger UI + OpenAPI 3.0 |
 | Docker | Dockerfile + docker-compose |
 | CI/CD | GitHub Actions |
 
@@ -146,10 +173,55 @@ src/
 ## 🧪 Testowanie
 
 ```bash
+# Testy jednostkowe
 npm run test
+
+# Testy z UI
 npm run test:ui
+
+# Testy z pokryciem kodu
 npm run test:coverage
+
+# Testy E2E (Playwright)
+npm run e2e
+npm run e2e:ui
+npm run e2e:headed
 ```
+
+---
+
+## 📡 API
+
+### Endpoints
+
+| Metoda | Endpoint | Opis |
+|--------|----------|------|
+| GET/POST | `/api/patients` | Lista i tworzenie pacjentów |
+| GET/PUT/DELETE | `/api/patients/[id]` | Operacje na pojedynczym pacjencie |
+| GET | `/api/patients/export` | Export pacjentów (csv/json) |
+| GET/POST | `/api/plans` | Lista i tworzenie planów |
+| GET/PUT/DELETE | `/api/plans/[id]` | Operacje na pojedynczym planie |
+| GET | `/api/exercises` | Lista ćwiczeń |
+| POST | `/api/diagnoses` | Tworzenie diagnozy |
+| POST | `/api/users` | Tworzenie użytkownika (admin only) |
+| GET | `/api/docs` | Specyfikacja OpenAPI |
+
+### Przykłady
+
+```bash
+# Pobierz pacjentów z paginacją
+curl -H "Authorization: Bearer TOKEN" "http://localhost:3000/api/patients?page=1&limit=20"
+
+# Pobierz plany z filtrowaniem
+curl -H "Authorization: Bearer TOKEN" "http://localhost:3000/api/plans?status=active&patientId=xxx"
+
+# Export pacjentów do CSV
+curl -H "Authorization: Bearer TOKEN" "http://localhost:3000/api/patients/export?format=csv" -o patients.csv
+```
+
+### Dokumentacja Swagger
+
+Otwórz `http://localhost:3000/docs` w przeglądarce aby zobaczyć interaktywną dokumentację API.
 
 ---
 

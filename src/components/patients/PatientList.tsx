@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Patient } from '@/types';
 import { PatientCard } from './PatientCard';
+import { useDebounce } from '@/lib/useDebounce';
 
 interface PatientListProps {
   patients: Patient[];
@@ -10,17 +11,18 @@ interface PatientListProps {
 
 export function PatientList({ patients }: PatientListProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const filteredPatients = useMemo(() => {
-    if (!searchQuery.trim()) return patients;
+    if (!debouncedSearchQuery.trim()) return patients;
     
-    const query = searchQuery.toLowerCase().trim();
+    const query = debouncedSearchQuery.toLowerCase().trim();
     return patients.filter((patient) => {
       const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
       const reversedName = `${patient.lastName} ${patient.firstName}`.toLowerCase();
       return fullName.includes(query) || reversedName.includes(query);
     });
-  }, [patients, searchQuery]);
+  }, [patients, debouncedSearchQuery]);
 
   if (patients.length === 0) {
     return (

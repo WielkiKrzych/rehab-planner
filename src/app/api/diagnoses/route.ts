@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { rateLimit } from '@/lib/rateLimit';
 import { DiagnosisSchema } from '@/lib/validations';
+import { requireAuth } from '@/lib/authMiddleware';
 
 export async function POST(request: NextRequest) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   const { allowed, remaining } = rateLimit(request);
   
   if (!allowed) {

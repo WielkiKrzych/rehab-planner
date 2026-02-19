@@ -36,6 +36,9 @@ model Patient {
   diagnoses     Diagnosis[]
   plans         Plan[]
   
+  @@index([firstName, lastName])
+  @@index([email])
+  @@index([updatedAt])
   @@map("patients")
 }
 
@@ -48,6 +51,7 @@ model Diagnosis {
   patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   
+  @@index([patientId])
   @@map("diagnoses")
 }
 
@@ -62,6 +66,9 @@ model Plan {
   patient     Patient?    @relation(fields: [patientId], references: [id], onDelete: SetNull)
   weeks       PlanWeek[]
   
+  @@index([patientId])
+  @@index([status])
+  @@index([createdAt])
   @@map("plans")
 }
 
@@ -115,5 +122,8 @@ model Exercise {
   tags        String   @default("")
   isDefault   Boolean  @default(false)
   
+  @@index([category])
+  @@index([bodyPart])
+  @@index([name])
   @@map("exercises")
 }

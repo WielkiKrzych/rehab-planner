@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { RehabilitationPlan, PlanWeek, PlanDay, PlanExercise } from '@/types';
 import { rateLimit } from '@/lib/rateLimit';
 import { PlanSchema } from '@/lib/validations';
+import { requireAuth } from '@/lib/authMiddleware';
 
 type DbPlanWithIncludes = {
   id: string;
@@ -61,6 +62,9 @@ function transformPlan(plan: DbPlanWithIncludes): RehabilitationPlan {
 }
 
 export async function GET(request: NextRequest) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   const { allowed, remaining } = rateLimit(request);
   
   if (!allowed) {
@@ -71,23 +75,62 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const plans = await prisma.plan.findMany({
-      include: {
-        patient: true,
-        weeks: {
-          include: {
-            days: {
-              include: {
-                exercises: true,
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || '';
+    const status = searchParams.get('status') || '';
+    const patientId = searchParams.get('patientId') || '';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const skip = (page - 1) * limit;
+
+    const where: Record<string, unknown> = {};
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { description: { contains: search } },
+      ];
+    }
+    
+    if (status) {
+      where.status = status;
+    }
+    
+    if (patientId) {
+      where.patientId = patientId;
+    }
+
+    const [plans, total] = await Promise.all([
+      prisma.plan.findMany({
+        where,
+        include: {
+          patient: true,
+          weeks: {
+            include: {
+              days: {
+                include: {
+                  exercises: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.plan.count({ where }),
+    ]);
     
-    return NextResponse.json(plans.map(transformPlan), {
+    return NextResponse.json({
+      data: plans.map(transformPlan),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      }
+    }, {
       headers: { 'X-RateLimit-Remaining': String(remaining) },
     });
   } catch (error) {
@@ -122,6 +165,9 @@ type PlanInput = {
 };
 
 export async function POST(request: NextRequest) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   const { allowed, remaining } = rateLimit(request);
   
   if (!allowed) {

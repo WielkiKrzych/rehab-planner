@@ -3,8 +3,12 @@ import { prisma } from '@/lib/prisma';
 import { defaultExercises } from '@/data/exercises';
 import { Exercise } from '@/types';
 import { rateLimit } from '@/lib/rateLimit';
+import { requireAuth } from '@/lib/authMiddleware';
 
 export async function GET(request: NextRequest) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   const { allowed, remaining } = rateLimit(request);
   
   if (!allowed) {
