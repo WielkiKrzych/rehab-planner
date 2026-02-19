@@ -3,12 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { defaultExercises } from '@/data/exercises';
 import { defaultRehabPlans } from '@/data/rehabPlans';
 import { Exercise } from '@/types';
+import bcrypt from 'bcryptjs';
 
 export async function POST() {
   try {
     const results = {
       exercises: { deleted: 0, added: 0 },
       plans: { added: 0 },
+      users: { added: 0 },
     };
 
     const deletedExercises = await prisma.exercise.deleteMany({
@@ -85,6 +87,23 @@ export async function POST() {
         },
       });
       results.plans.added++;
+    }
+
+    const existingAdmin = await prisma.user.findUnique({
+      where: { email: 'admin@rehab.pl' },
+    });
+
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash('admin123', 12);
+      await prisma.user.create({
+        data: {
+          email: 'admin@rehab.pl',
+          password: hashedPassword,
+          name: 'Administrator',
+          role: 'admin',
+        },
+      });
+      results.users.added++;
     }
 
     return NextResponse.json({

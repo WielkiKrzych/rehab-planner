@@ -11,8 +11,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS%204-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://prisma.io/)
-[![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+[![CI](https://github.com/WielkiKrzych/rehab-planner/actions/workflows/ci.yml/badge.svg)](https://github.com/WielkiKrzych/rehab-planner/actions)
 
 [Demo](#-demo) • [Funkcje](#-funkcje) • [Instalacja](#-instalacja) • [Użycie](#-użycie)
 
@@ -32,96 +32,81 @@ Aplikacja wykorzystuje nowoczesny **Cyberpunk + Liquid Glass** design z:
 
 ---
 
-## 🔧 Ostatnie zmiany
+## 🔐 Bezpieczeństwo
 
-### Poprawki (Luty 2025)
-
-- ✅ **Obsługa błędów** - Wszystkie endpointy API mają teraz try/catch i zwracają odpowiednie kody HTTP (400, 404, 500)
-- ✅ **Walidacja danych** - API waliduje wymagane pola (firstName, lastName, birthDate, etc.)
-- ✅ **Error handling w frontendzie** - AppContext ma teraz stan błędów i funkcję `clearError()`
-- ✅ **Memoizacja komponentów** - ExerciseCard, PatientCard, PlanCard używają React.memo()
-- ✅ **Refaktoryzacja CSS** - Standaryzacja klas (np. `text-neon-cyan` zamiast `text-[#00f0ff]`)
-- ✅ **Usunięcie martwego kodu** - Usunięte nieużywane pliki `storage.ts` i `seed.ts`
+- ✅ **NextAuth.js** - Logowanie użytkowników z JWT
+- ✅ **Role-based access** - Administrator i Fizjoterapeuta
+- ✅ **Rate limiting** - Ochrona przed atakami (100 req/min)
+- ✅ **CORS** - Konfigurowalne zasady CORS
+- ✅ **Zod validation** - Walidacja danych na serwerze
+- ✅ **Middleware** - Ochrona wszystkich tras
 
 ---
 
 ## ✨ Funkcje
 
-<table>
-<tr>
-<td width="50%">
-
-### 📊 Dashboard
-Statystyki na żywo, ostatnia aktywność, szybki dostęp do pacjentów i planów
-
-</td>
-<td width="50%">
-
-### 👥 Pacjenci
-Pełne CRUD, historia diagnoz, przypisane plany rehabilitacji
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### 📑 Kreator Planów
-Intuicyjny builder z tygodniami, dniami i ćwiczeniami
-
-</td>
-<td width="50%">
-
-### 🏋️ Baza Ćwiczeń
-30+ predefiniowanych ćwiczeń z kategoryzacją i filtrami
-
-</td>
-</tr>
-</table>
-
----
-
-## 🖼️ Zrzuty Ekranu
-
-<div align="center">
-
-| Dashboard | Baza Ćwiczeń |
-|:---------:|:------------:|
-| ![Dashboard](https://via.placeholder.com/400x250/0F172A/FFFFFF?text=📊+Dashboard) | ![Exercises](https://via.placeholder.com/400x250/0F172A/FFFFFF?text=🏋️+Ćwiczenia) |
-
-| Kreator Planów | Pacjenci |
-|:--------------:|:--------:|
-| ![Plans](https://via.placeholder.com/400x250/0F172A/FFFFFF?text=📑+Kreator+Planów) | ![Patients](https://via.placeholder.com/400x250/0F172A/FFFFFF?text=👥+Pacjenci) |
-
-</div>
+| Funkcja | Opis |
+|---------|------|
+| 📊 Dashboard | Statystyki na żywo, ostatnia aktywność |
+| 👥 Pacjenci | Pełne CRUD, historia diagnoz, plany rehabilitacji |
+| 📑 Kreator Planów | Builder z tygodniami, dniami i ćwiczeniami |
+| 🏋️ Baza Ćwiczeń | 30+ ćwiczeń z kategoryzacją i filtrami |
+| 🔍 Wyszukiwanie | Szukaj pacjentów i ćwiczeń w czasie rzeczywistym |
+| 🐳 Docker | Uruchom w kontenerze jednym poleceniem |
 
 ---
 
 ## 🚀 Instalacja
 
+### Opcja 1: Lokalnie
+
 ```bash
-# Sklonuj repozytorium
 git clone https://github.com/WielkiKrzych/rehab-planner.git
 cd rehab-planner
-
-# Zainstaluj zależności
 npm install
-
-# Uruchom serwer deweloperski
+npx prisma generate
+npx prisma db push
 npm run dev
 ```
 
-Otwórz **[http://localhost:3000](http://localhost:3000)** w przeglądarce.
+### Opcja 2: Docker
+
+```bash
+docker-compose up -d
+```
+
+---
+
+## 📖 Pierwsze uruchomienie
+
+```bash
+curl -X POST http://localhost:3000/api/seed
+```
+
+**Dane logowania:**
+- Email: `admin@rehab.pl`
+- Hasło: `admin123`
 
 ---
 
 ## 📖 Użycie
 
-| Krok | Akcja | Opis |
-|:----:|-------|------|
-| 1️⃣ | **Dodaj pacjenta** | `Pacjenci` → `Dodaj pacjenta` → Wypełnij formularz |
-| 2️⃣ | **Utwórz plan** | `Plany` → `Utwórz plan` → Dodaj tygodnie i ćwiczenia |
-| 3️⃣ | **Przypisz pacjentowi** | Zapisz jako aktywny plan → Wybierz pacjenta |
-| 4️⃣ | **Śledź postępy** | Dashboard → Statystyki |
+| Krok | Akcja |
+|:----:|-------|
+| 1️⃣ | Zaloguj się |
+| 2️⃣ | Dodaj pacjenta |
+| 3️⃣ | Utwórz plan rehabilitacji |
+| 4️⃣ | Przypisz plan pacjentowi |
+| 5️⃣ | Śledź postępy na dashboard |
+
+---
+
+## ⚙️ Zmienne środowiskowe
+
+```env
+DATABASE_URL="file:./dev.db"
+AUTH_SECRET="twoj-tajny-klucz-min-32-znaki"
+```
 
 ---
 
@@ -129,23 +114,17 @@ Otwórz **[http://localhost:3000](http://localhost:3000)** w przeglądarce.
 
 ```
 src/
-├── 📂 app/                    # Next.js App Router
-│   ├── 📂 patients/           # Zarządzanie pacjentami
-│   ├── 📂 plans/              # Kreator planów
-│   ├── 📂 exercises/          # Baza ćwiczeń
-│   └── 📂 stats/              # Statystyki
-│
-├── 🧩 components/             # React Components
-│   ├── 📂 layout/             # Layout & Sidebar
-│   ├── 📂 patients/           # Komponenty pacjentów
-│   ├── 📂 plans/              # Komponenty planów
-│   └── 📂 exercises/          # Komponenty ćwiczeń
-│
-├── 🔄 context/                # React Context (State)
-├── 📊 data/                   # Seed data (30 ćwiczeń)
-├── 🛠️ lib/                    # Utilities & Prisma client
-├── 📝 types/                  # TypeScript Types
-└── 📂 prisma/                 # Database schema & migrations
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   ├── patients/          # Patients pages
+│   ├── plans/             # Plans pages
+│   ├── exercises/         # Exercises page
+│   └── login/             # Login page
+├── components/            # React Components
+├── context/               # React Context
+├── lib/                   # Utilities
+├── test/                  # Test setup
+└── types/                 # TypeScript types
 ```
 
 ---
@@ -154,27 +133,31 @@ src/
 
 | Warstwa | Technologia |
 |---------|-------------|
-| **Framework** | Next.js 16 (App Router) |
-| **UI** | React 19 + Tailwind CSS 4 |
-| **Język** | TypeScript |
-| **Database** | SQLite + Prisma ORM |
-| **State** | React Context + Hooks |
-| **Design** | Cyberpunk + Liquid Glass |
+| Framework | Next.js 16 (App Router) |
+| UI | React 19 + Tailwind CSS 4 |
+| Język | TypeScript |
+| Database | SQLite + Prisma ORM |
+| Auth | NextAuth.js (JWT) |
+| Validation | Zod |
+| Testing | Vitest + React Testing Library |
+| Docker | Dockerfile + docker-compose |
+| CI/CD | GitHub Actions |
 
 ---
 
-## 📱 Responsywność
+## 🧪 Testowanie
 
-Aplikacja w pełni responsywna:
-
-- 🖥️ **Desktop** - Pełny sidebar, szerokie karty
-- 📱 **Mobile** - Hamburger menu, zoptymalizowane widoki
+```bash
+npm run test
+npm run test:ui
+npm run test:coverage
+```
 
 ---
 
 ## 🤝 Contributing
 
-Pull requesty są mile widziane! Dla większych zmian otwórz najpierw issue.
+Pull requesty są mile widziane!
 
 ---
 
@@ -187,7 +170,5 @@ Pull requesty są mile widziane! Dla większych zmian otwórz najpierw issue.
 <div align="center">
 
 **Stworzone z ❤️ dla fizjoterapeutów**
-
-[⬆ Powrót na górę](#-rehab-planner)
 
 </div>

@@ -9,6 +9,18 @@ datasource db {
   provider = "sqlite"
 }
 
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String?
+  role          String    @default("physio") // admin, physio
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
 model Patient {
   id            String       @id @default(cuid())
   firstName     String

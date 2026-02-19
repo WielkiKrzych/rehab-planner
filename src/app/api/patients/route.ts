@@ -1,16 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/rateLimit';
+import { PatientSchema } from '@/lib/validations';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { allowed, remaining } = rateLimit(request);
+  
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
+
   try {
-    const patients = await prisma.patient.findMany({
-      include: {
-        diagnoses: true,
-        plans: true,
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || '';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const skip = (page - 1) * limit;
+
+    const where = search
+      ? {
+          OR: [
+            { firstName: { contains: search } },
+            { lastName: { contains: search } },
+            { email: { contains: search } },
+            { phone: { contains: search } },
+          ],
+        }
+      : {};
+
+    const [patients, total] = await Promise.all([
+      prisma.patient.findMany({
+        where,
+        include: {
+          diagnoses: true,
+          plans: true,
+        },
+        orderBy: { updatedAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.patient.count({ where }),
+    ]);
+
+    return NextResponse.json(patients, {
+      headers: {
+        'X-RateLimit-Remaining': String(remaining),
+        'X-Total-Count': String(total),
+        'X-Total-Pages': String(Math.ceil(total / limit)),
       },
-      orderBy: { updatedAt: 'desc' },
     });
-    return NextResponse.json(patients);
   } catch (error) {
     console.error('Failed to fetch patients:', error);
     return NextResponse.json(
@@ -21,27 +62,42 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const { allowed, remaining } = rateLimit(request);
+  
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
+
   try {
     const body = await request.json();
     
-    if (!body.firstName?.trim() || !body.lastName?.trim() || !body.birthDate) {
+    const validation = PatientSchema.safeParse(body);
+    
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: firstName, lastName, birthDate' },
+        { error: 'Validation failed', details: validation.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
     
+    const { firstName, lastName, birthDate, phone, email, notes } = validation.data;
+    
     const patient = await prisma.patient.create({
       data: {
-        firstName: body.firstName.trim(),
-        lastName: body.lastName.trim(),
-        birthDate: body.birthDate,
-        phone: body.phone || null,
-        email: body.email || null,
-        notes: body.notes || '',
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        birthDate,
+        phone: phone || null,
+        email: email || null,
+        notes: notes || '',
       },
     });
-    return NextResponse.json(patient);
+    return NextResponse.json(patient, {
+      headers: { 'X-RateLimit-Remaining': String(remaining) },
+    });
   } catch (error) {
     console.error('Failed to create patient:', error);
     return NextResponse.json(

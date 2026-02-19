@@ -1,9 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { defaultExercises } from '@/data/exercises';
 import { Exercise } from '@/types';
+import { rateLimit } from '@/lib/rateLimit';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { allowed, remaining } = rateLimit(request);
+  
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
+
   try {
     let exercises = await prisma.exercise.findMany();
     
@@ -38,7 +48,9 @@ export async function GET() {
       sets: ex.sets || undefined,
       equipment: JSON.parse(ex.equipment || '[]'),
       tags: JSON.parse(ex.tags || '[]'),
-    })));
+    })), {
+      headers: { 'X-RateLimit-Remaining': String(remaining) },
+    });
   } catch (error) {
     console.error('Failed to fetch exercises:', error);
     return NextResponse.json(

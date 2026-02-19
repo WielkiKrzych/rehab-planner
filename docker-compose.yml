@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - AUTH_SECRET=${AUTH_SECRET}
+    volumes:
+      - ./prisma:/app/prisma
+      - ./prisma/dev.db:/app/prisma/dev.db
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=rehab
+      - POSTGRES_PASSWORD=rehab123
+      - POSTGRES_DB=rehab_planner
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

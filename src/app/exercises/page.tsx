@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { ExerciseList } from '@/components/exercises/ExerciseList';
 import { useApp } from '@/context/AppContext';
@@ -25,14 +25,32 @@ const bodyPartOptions: { value: BodyPart | ''; label: string }[] = [
 
 export default function ExercisesPage() {
   const { exercises, isLoading } = useApp();
+  const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<ExerciseCategory | ''>('');
   const [bodyPartFilter, setBodyPartFilter] = useState<BodyPart | ''>('');
 
-  const filteredExercises = exercises.filter((exercise) => {
-    if (categoryFilter && exercise.category !== categoryFilter) return false;
-    if (bodyPartFilter && exercise.bodyPart !== bodyPartFilter) return false;
-    return true;
-  });
+  const filteredExercises = useMemo(() => {
+    let result = exercises;
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter((exercise) => 
+        exercise.name.toLowerCase().includes(query) ||
+        exercise.description.toLowerCase().includes(query) ||
+        exercise.tags.some(tag => tag.toLowerCase().includes(query))
+      );
+    }
+    
+    if (categoryFilter) {
+      result = result.filter((exercise) => exercise.category === categoryFilter);
+    }
+    
+    if (bodyPartFilter) {
+      result = result.filter((exercise) => exercise.bodyPart === bodyPartFilter);
+    }
+    
+    return result;
+  }, [exercises, searchQuery, categoryFilter, bodyPartFilter]);
 
   return (
     <Layout>
@@ -42,6 +60,31 @@ export default function ExercisesPage() {
             <h1 className="text-3xl font-bold gradient-text">Baza Ćwiczeń</h1>
             <p className="text-gray-400 mt-1">{filteredExercises.length} z {exercises.length} ćwiczeń</p>
           </div>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Szukaj ćwiczeń..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="form-input w-full pl-11 pr-4 py-3"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-300"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-3">

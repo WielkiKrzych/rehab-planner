@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { RehabilitationPlan, PlanWeek, PlanDay, PlanExercise } from '@/types';
+import { rateLimit } from '@/lib/rateLimit';
+import { PlanSchema } from '@/lib/validations';
 
 type DbPlanWithIncludes = {
   id: string;
@@ -58,7 +60,16 @@ function transformPlan(plan: DbPlanWithIncludes): RehabilitationPlan {
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { allowed, remaining } = rateLimit(request);
+  
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
+
   try {
     const plans = await prisma.plan.findMany({
       include: {
@@ -76,7 +87,9 @@ export async function GET() {
       orderBy: { createdAt: 'desc' },
     });
     
-    return NextResponse.json(plans.map(transformPlan));
+    return NextResponse.json(plans.map(transformPlan), {
+      headers: { 'X-RateLimit-Remaining': String(remaining) },
+    });
   } catch (error) {
     console.error('Failed to fetch plans:', error);
     return NextResponse.json(
@@ -109,24 +122,37 @@ type PlanInput = {
 };
 
 export async function POST(request: NextRequest) {
+  const { allowed, remaining } = rateLimit(request);
+  
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
+
   try {
-    const body: PlanInput = await request.json();
+    const body = await request.json();
     
-    if (!body.name?.trim()) {
+    const validation = PlanSchema.safeParse(body);
+    
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Missing required field: name' },
+        { error: 'Validation failed', details: validation.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
     
+    const { name, description, patientId, status, weeks } = validation.data;
+    
     const plan = await prisma.plan.create({
       data: {
-        name: body.name.trim(),
-        description: body.description || null,
-        patientId: body.patientId || null,
-        status: body.status || 'template',
+        name: name.trim(),
+        description: description || null,
+        patientId: patientId || null,
+        status: status || 'template',
         weeks: {
-          create: body.weeks?.map((week) => ({
+          create: weeks?.map((week) => ({
             weekNumber: week.weekNumber,
             focus: week.focus || null,
             days: {
@@ -160,7 +186,9 @@ export async function POST(request: NextRequest) {
       },
     });
     
-    return NextResponse.json(transformPlan(plan));
+    return NextResponse.json(transformPlan(plan), {
+      headers: { 'X-RateLimit-Remaining': String(remaining) },
+    });
   } catch (error) {
     console.error('Failed to create plan:', error);
     return NextResponse.json(
