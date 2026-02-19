@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/authMiddleware';
 import { z } from 'zod';
+import { getAIResponse } from '@/lib/openai';
 
 const ChatMessageSchema = z.object({
   patientId: z.string().min(1),
@@ -107,6 +108,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
     }
 
+    // Fetch patient context for AI
+    const recentCheckins = await prisma.dailyCheckin.findMany({
+      where: { patientId },
+      orderBy: { date: 'desc' },
+      take: 7,
+      select: {
+        date: true,
+        painLevel: true,
+        energyLevel: true,
+        sleepQuality: true,
+        mood: true,
+      },
+    });
+
+    const goals = await prisma.patientGoal.findMany({
+      where: { patientId },
+      select: {
+        name: true,
+        goalType: true,
+      },
+    });
+
     const userMessage = await prisma.chatMessage.create({
       data: {
         patientId,
@@ -115,7 +138,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const aiResponse = generateAIResponse(message, patient.firstName);
+    // Try OpenAI first, fallback to simple AI
+    const aiResponse = await getAIResponse(message, {
+      patientName: patient.firstName,
+      recentCheckins: recentCheckins.map(c => ({
+        date: c.date.toISOString().split('T')[0],
+        painLevel: c.painLevel,
+        energyLevel: c.energyLevel,
+        sleepQuality: c.sleepQuality,
+        mood: c.mood,
+      })),
+      goals: goals.map(g => ({ name: g.name, goalType: g.goalType })),
+    }) || generateAIResponse(message, patient.firstName);
 
     const assistantMessage = await prisma.chatMessage.create({
       data: {

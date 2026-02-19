@@ -11,8 +11,9 @@ const navItems = [
   { href: '/checkin', label: 'AI Check-in', icon: '🤖' },
   { href: '/goals', label: 'AI Cele', icon: '🎯' },
   { href: '/chat', label: 'AI Chat', icon: '💬' },
-  { href: '/reports', label: 'Raporty', icon: '📈' },
-  { href: '/stats', label: 'Statystyki', icon: '📊' },
+  { href: '/progress', label: 'Wykresy', icon: '📈' },
+  { href: '/reports', label: 'Raporty', icon: '📊' },
+  { href: '/stats', label: 'Statystyki', icon: '📉' },
 ];
 
 interface SidebarProps {
