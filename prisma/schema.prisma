@@ -35,6 +35,10 @@ model Patient {
   
   diagnoses     Diagnosis[]
   plans         Plan[]
+  dailyCheckins DailyCheckin[]
+  goals         PatientGoal[]
+  chatMessages  ChatMessage[]
+  progressReports ProgressReport[]
   
   @@index([firstName, lastName])
   @@index([email])
@@ -126,4 +130,66 @@ model Exercise {
   @@index([bodyPart])
   @@index([name])
   @@map("exercises")
+}
+
+model DailyCheckin {
+  id            String    @id @default(cuid())
+  patientId     String
+  patient       Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  date          String
+  painLevel     Int       @default(0)
+  energyLevel   Int       @default(5)
+  sleepQuality  Int       @default(5)
+  mood          Int       @default(5)
+  notes         String    @default("")
+  aiRecommendation String @default("")
+  status        String    @default("pending")
+  createdAt     DateTime  @default(now())
+  
+  @@index([patientId])
+  @@index([date])
+  @@map("daily_checkins")
+}
+
+model PatientGoal {
+  id          String    @id @default(cuid())
+  patientId   String
+  patient     Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  goalType    String
+  targetDate  String?
+  status      String    @default("active")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([patientId])
+  @@map("patient_goals")
+}
+
+model ChatMessage {
+  id          String    @id @default(cuid())
+  patientId   String
+  patient     Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  role        String
+  content     String
+  createdAt   DateTime  @default(now())
+  
+  @@index([patientId])
+  @@map("chat_messages")
+}
+
+model ProgressReport {
+  id          String    @id @default(cuid())
+  patientId   String
+  patient     Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  weekStart   String
+  weekEnd     String
+  summary     String
+  aiAnalysis  String?
+  createdAt   DateTime  @default(now())
+  
+  @@index([patientId])
+  @@index([weekStart])
+  @@map("progress_reports")
 }

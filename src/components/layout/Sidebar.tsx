@@ -8,6 +8,10 @@ const navItems = [
   { href: '/patients', label: 'Pacjenci', icon: '👥' },
   { href: '/plans', label: 'Plany', icon: '📑' },
   { href: '/exercises', label: 'Ćwiczenia', icon: '🏋️' },
+  { href: '/checkin', label: 'AI Check-in', icon: '🤖' },
+  { href: '/goals', label: 'AI Cele', icon: '🎯' },
+  { href: '/chat', label: 'AI Chat', icon: '💬' },
+  { href: '/reports', label: 'Raporty', icon: '📈' },
   { href: '/stats', label: 'Statystyki', icon: '📊' },
 ];
 

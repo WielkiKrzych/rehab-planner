@@ -54,6 +54,11 @@ Aplikacja wykorzystuje nowoczesny **Cyberpunk + Liquid Glass** design z:
 | 📑 Kreator Planów | Builder z tygodniami, dniami i ćwiczeniami |
 | 🏋️ Baza Ćwiczeń | 30+ ćwiczeń z kategoryzacją i filtrami |
 | 🔍 Wyszukiwanie | Szukaj pacjentów z debounce (300ms) |
+| 🤖 AI Check-in | Codzienna ocena gotowości z algorytmem adaptive intensity |
+| 🎯 AI Cele | Definiowanie celów z automatycznym generowaniem planów |
+| 💬 AI Chat | Rozmowa z AI asystentem o postępach i ćwiczeniach |
+| 📈 Raporty Postępów | Cotygodniowa analiza z trendami AI |
+| 📆 Calendar Export | Export do Google/Apple Calendar (.ics) |
 | 📖 API REST | Pełne REST API z paginacją i filtrami |
 | 📚 Swagger/OpenAPI | Dokumentacja API dostępna pod /docs |
 | 🐳 Docker | Uruchom w kontenerze jednym poleceniem |
