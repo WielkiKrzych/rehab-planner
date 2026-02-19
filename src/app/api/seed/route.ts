@@ -94,7 +94,8 @@ export async function POST() {
     });
 
     if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash('admin123', 12);
+      const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123';
+      const hashedPassword = await bcrypt.hash(defaultPassword, 12);
       await prisma.user.create({
         data: {
           email: 'admin@rehab.pl',

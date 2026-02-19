@@ -83,9 +83,7 @@ docker-compose up -d
 curl -X POST http://localhost:3000/api/seed
 ```
 
-**Dane logowania:**
-- Email: `admin@rehab.pl`
-- Hasło: `admin123`
+Po uruchomieniu seed, zaloguj się używając danych admina utworzonych podczas seed.
 
 ---
 
@@ -105,7 +103,7 @@ curl -X POST http://localhost:3000/api/seed
 
 ```env
 DATABASE_URL="file:./dev.db"
-AUTH_SECRET="twoj-tajny-klucz-min-32-znaki"
+AUTH_SECRET="wygeneruj wlasny-klucz-openssl-rand-base64-32"
 ```
 
 ---
