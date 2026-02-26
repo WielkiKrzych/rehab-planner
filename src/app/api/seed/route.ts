@@ -4,8 +4,23 @@ import { defaultExercises } from '@/data/exercises';
 import { defaultRehabPlans } from '@/data/rehabPlans';
 import { Exercise } from '@/types';
 import bcrypt from 'bcryptjs';
+import { requireAdmin } from '@/lib/authMiddleware';
 
+// Seed endpoint disabled in production - only works in development
+// For production seeding, use: npx prisma db seed
 export async function POST() {
+  // Security: Only allow in development mode
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'Seed endpoint is disabled in production. Use CLI: npx prisma db seed' },
+      { status: 403 }
+    );
+  }
+
+  // Require admin authentication
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const results = {
       exercises: { deleted: 0, added: 0 },
@@ -94,17 +109,23 @@ export async function POST() {
     });
 
     if (!existingAdmin) {
-      const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123';
-      const hashedPassword = await bcrypt.hash(defaultPassword, 12);
-      await prisma.user.create({
-        data: {
-          email: 'admin@rehab.pl',
-          password: hashedPassword,
-          name: 'Administrator',
-          role: 'admin',
-        },
-      });
-      results.users.added++;
+      // Use environment variable for default password, never hardcode
+      const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD;
+      
+      if (!defaultPassword) {
+        console.warn('DEFAULT_ADMIN_PASSWORD not set - skipping admin user creation');
+      } else {
+        const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+        await prisma.user.create({
+          data: {
+            email: 'admin@rehab.pl',
+            password: hashedPassword,
+            name: 'Administrator',
+            role: 'admin',
+          },
+        });
+        results.users.added++;
+      }
     }
 
     return NextResponse.json({
@@ -122,6 +143,14 @@ export async function POST() {
 }
 
 export async function GET() {
+  // Security: Only allow in development mode
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'Seed status endpoint is disabled in production' },
+      { status: 403 }
+    );
+  }
+
   try {
     const exercisesCount = await prisma.exercise.count();
     const plansCount = await prisma.plan.count({ where: { patientId: null } });

@@ -16,6 +16,20 @@ export interface EmailOptions {
   html: string;
 }
 
+/**
+ * Escape HTML special characters to prevent XSS attacks
+ */
+function escapeHtml(text: string): string {
+  const htmlEntities: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return text.replace(/[&<>"']/g, (char) => htmlEntities[char] || char);
+}
+
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   if (!process.env.SMTP_HOST) {
     console.log('Email not configured - skipping:', options.subject);
@@ -35,13 +49,15 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 }
 
 export async function sendDailyCheckinReminder(email: string, patientName: string) {
+  const safeName = escapeHtml(patientName);
+  
   return sendEmail({
     to: email,
     subject: 'Przypomnienie o codziennej ocenie - Rehab Planner',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #00f0ff;">Rehab Planner</h1>
-        <p>Cześć ${patientName}!</p>
+        <p>Cześć ${safeName}!</p>
         <p>Pamiętaj o wykonaniu dziennej oceny gotowości do treningu.</p>
         <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkin" 
            style="display: inline-block; background: #00f0ff; color: #0a0a0f; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
@@ -56,16 +72,19 @@ export async function sendDailyCheckinReminder(email: string, patientName: strin
 }
 
 export async function sendWeeklyReport(email: string, patientName: string, reportSummary: string) {
+  const safeName = escapeHtml(patientName);
+  const safeSummary = escapeHtml(reportSummary);
+  
   return sendEmail({
     to: email,
     subject: `Tygodniowy raport postępów - Rehab Planner`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #00f0ff;">Rehab Planner</h1>
-        <p>Cześć ${patientName}!</p>
+        <p>Cześć ${safeName}!</p>
         <p>Oto podsumowanie Twojego tygodnia:</p>
         <div style="background: #1a1a2e; padding: 16px; border-radius: 8px; margin: 16px 0;">
-          ${reportSummary}
+          ${safeSummary}
         </div>
         <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reports" 
            style="display: inline-block; background: #00f0ff; color: #0a0a0f; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
@@ -77,14 +96,17 @@ export async function sendWeeklyReport(email: string, patientName: string, repor
 }
 
 export async function sendGoalAchieved(email: string, patientName: string, goalName: string) {
+  const safeName = escapeHtml(patientName);
+  const safeGoalName = escapeHtml(goalName);
+  
   return sendEmail({
     to: email,
-    subject: `🎉 Gratulacje! Osiągnięto cel: ${goalName}`,
+    subject: `Gratulacje! Osiągnięto cel: ${safeGoalName}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #00ff88;">🎉 Gratulacje, ${patientName}!</h1>
+        <h1 style="color: #00ff88;">Gratulacje, ${safeName}!</h1>
         <p>Doskonale! Osiągnąłeś swój cel rehabilitacji:</p>
-        <h2 style="color: #00ff88;">${goalName}</h2>
+        <h2 style="color: #00ff88;">${safeGoalName}</h2>
         <p>To świetny postęp! Kontynuuj pracę nad kolejnymi celami.</p>
         <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/goals" 
            style="display: inline-block; background: #00ff88; color: #0a0a0f; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">

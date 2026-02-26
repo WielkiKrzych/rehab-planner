@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/authMiddleware';
+import { DailyCheckin, Patient, ProgressReport } from '@prisma/client';
 
+/**
+ * Get week bounds (Monday to Sunday) for a given date
+ * Creates NEW Date objects to avoid mutation
+ */
 function getWeekBounds(date: Date) {
   const day = date.getDay();
   const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(date.setDate(diff));
+  
+  // Create new Date objects to avoid mutating the input
+  const monday = new Date(date);
+  monday.setDate(diff);
   monday.setHours(0, 0, 0, 0);
   
   const sunday = new Date(monday);
@@ -18,15 +26,32 @@ function getWeekBounds(date: Date) {
   };
 }
 
-function analyzeProgress(checkins: any[], patientName: string) {
+interface CheckinForAnalysis {
+  date: Date;
+  painLevel: number | null;
+  energyLevel: number | null;
+  sleepQuality: number | null;
+  mood: number | null;
+}
+
+function analyzeProgress(checkins: CheckinForAnalysis[], patientName: string): string {
   if (checkins.length === 0) {
     return `Brak danych do analizy dla pacjenta ${patientName}.`;
   }
 
-  const avgPain = checkins.reduce((sum, c) => sum + (c.painLevel || 0), 0) / checkins.length;
-  const avgEnergy = checkins.reduce((sum, c) => sum + (c.energyLevel || 0), 0) / checkins.length;
-  const avgSleep = checkins.reduce((sum, c) => sum + (c.sleepQuality || 0), 0) / checkins.length;
-  const avgMood = checkins.reduce((sum, c) => sum + (c.mood || 0), 0) / checkins.length;
+  const validCheckins = checkins.filter(c => 
+    c.painLevel !== null && c.energyLevel !== null && 
+    c.sleepQuality !== null && c.mood !== null
+  );
+  
+  if (validCheckins.length === 0) {
+    return `Brak kompletnych danych do analizy dla pacjenta ${patientName}.`;
+  }
+
+  const avgPain = validCheckins.reduce((sum, c) => sum + (c.painLevel || 0), 0) / validCheckins.length;
+  const avgEnergy = validCheckins.reduce((sum, c) => sum + (c.energyLevel || 0), 0) / validCheckins.length;
+  const avgSleep = validCheckins.reduce((sum, c) => sum + (c.sleepQuality || 0), 0) / validCheckins.length;
+  const avgMood = validCheckins.reduce((sum, c) => sum + (c.mood || 0), 0) / validCheckins.length;
   
   const avgReadiness = Math.round(((10 - avgPain) + avgEnergy + avgSleep + avgMood) / 4 * 10);
   
@@ -46,15 +71,20 @@ function analyzeProgress(checkins: any[], patientName: string) {
     analysis += `**Ocena:** ❌ Wymaga uwagi. Rozważ konsultację ze specjalistą.\n\n`;
   }
 
-  const painTrend = checkins[checkins.length - 1]?.painLevel < checkins[0]?.painLevel;
-  const energyTrend = checkins[checkins.length - 1]?.energyLevel > checkins[0]?.energyLevel;
+  const lastCheckin = validCheckins[validCheckins.length - 1];
+  const firstCheckin = validCheckins[0];
   
-  analysis += `**Trend:**\n`;
-  if (painTrend) {
-    analysis += `- Ból zmniejszył się ✓\n`;
-  }
-  if (energyTrend) {
-    analysis += `- Energia wzrosła ✓\n`;
+  if (lastCheckin && firstCheckin) {
+    const painTrend = (lastCheckin.painLevel || 0) < (firstCheckin.painLevel || 0);
+    const energyTrend = (lastCheckin.energyLevel || 0) > (firstCheckin.energyLevel || 0);
+    
+    analysis += `**Trend:**\n`;
+    if (painTrend) {
+      analysis += `- Ból zmniejszył się ✓\n`;
+    }
+    if (energyTrend) {
+      analysis += `- Energia wzrosła ✓\n`;
+    }
   }
   
   analysis += `\n**Rekomendacje:**\n`;
@@ -62,7 +92,7 @@ function analyzeProgress(checkins: any[], patientName: string) {
     analysis += `- Zredukuj intensywność ćwiczeń\n`;
   }
   if (avgSleep < 5) {
-    analysis += `- Popraw hygiene snu\n`;
+    analysis += `- Popraw higienę snu\n`;
   }
   if (avgEnergy < 5) {
     analysis += `- Zadbaj o regenerację między treningami\n`;
@@ -102,60 +132,72 @@ export async function POST(request: NextRequest) {
   const authError = await requireAuth();
   if (authError) return authError;
 
+  let body;
   try {
-    const body = await request.json();
-    const { patientId } = body;
-
-    if (!patientId) {
-      return NextResponse.json({ error: 'patientId is required' }, { status: 400 });
-    }
-
-    const patient = await prisma.patient.findUnique({
-      where: { id: patientId },
-    });
-
-    if (!patient) {
-      return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
-    }
-
-    const { weekStart, weekEnd } = getWeekBounds(new Date());
-
-    const existingReport = await prisma.progressReport.findFirst({
-      where: {
-        patientId,
-        weekStart,
-      },
-    });
-
-    if (existingReport) {
-      return NextResponse.json({ error: 'Report for this week already exists', report: existingReport }, { status: 400 });
-    }
-
-    const checkins = await prisma.dailyCheckin.findMany({
-      where: {
-        patientId,
-        date: {
-          gte: weekStart,
-          lte: weekEnd,
-        },
-      },
-    });
-
-    const aiAnalysis = analyzeProgress(checkins, patient.firstName);
-
-    const report = await prisma.progressReport.create({
-      data: {
-        patientId,
-        weekStart,
-        weekEnd,
-        summary: `Tygodniowy raport postępów dla ${patient.firstName} ${patient.lastName}`,
-        aiAnalysis,
-      },
-    });
-
-    return NextResponse.json(report);
-  } catch (error) {
-    console.error('Failed to generate report:', error);
-    return NextResponse.json({ error: 'Failed to generate report' }, { status: 500 });
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: 'Invalid JSON in request body' },
+      { status: 400 }
+    );
   }
+  
+  const { patientId } = body;
+
+  if (!patientId) {
+    return NextResponse.json({ error: 'patientId is required' }, { status: 400 });
+  }
+
+  const patient = await prisma.patient.findUnique({
+    where: { id: patientId },
+  });
+
+  if (!patient) {
+    return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
+  }
+
+  // Use new Date to avoid mutation
+  const { weekStart, weekEnd } = getWeekBounds(new Date());
+
+  const existingReport = await prisma.progressReport.findFirst({
+    where: {
+      patientId,
+      weekStart,
+    },
+  });
+
+  if (existingReport) {
+    return NextResponse.json({ error: 'Report for this week already exists', report: existingReport }, { status: 400 });
+  }
+
+  const checkins = await prisma.dailyCheckin.findMany({
+    where: {
+      patientId,
+      date: {
+        gte: weekStart,
+        lte: weekEnd,
+      },
+    },
+    select: {
+      date: true,
+      painLevel: true,
+      energyLevel: true,
+      sleepQuality: true,
+      mood: true,
+    },
+  });
+
+  const aiAnalysis = analyzeProgress(checkins, patient.firstName);
+
+  const report = await prisma.progressReport.create({
+    data: {
+      patientId,
+      weekStart,
+      weekEnd,
+      summary: `Tygodniowy raport postępów dla ${patient.firstName} ${patient.lastName}`,
+      aiAnalysis,
+    },
+  });
+
+  return NextResponse.json(report);
 }

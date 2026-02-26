@@ -36,11 +36,16 @@ export default function LoginPage() {
     }
   };
 
+  const currentYear = new Date().getFullYear();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold gradient-text mb-2">🏥 Rehab Planner</h1>
+          <h1 className="text-4xl font-bold gradient-text mb-2">
+            <span className="inline-block mr-2">&#x1F3E5;</span>
+            Rehab Planner
+          </h1>
           <p className="text-gray-400">Zaloguj się do systemu</p>
         </div>
 
@@ -103,7 +108,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-gray-500 text-sm mt-6">
-          Rehab Planner &copy; 2025
+          Rehab Planner &copy; {currentYear}
         </p>
       </div>
     </div>

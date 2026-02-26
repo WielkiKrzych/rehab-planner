@@ -34,14 +34,32 @@ Aplikacja wykorzystuje nowoczesny **Cyberpunk + Liquid Glass** design z:
 
 ## 🔐 Bezpieczeństwo
 
-- ✅ **NextAuth.js** - Logowanie użytkowników z JWT
-- ✅ **Role-based access** - Administrator i Fizjoterapeuta
-- ✅ **API Authentication** - Wszystkie endpointy chronione sesją
-- ✅ **Rate limiting** - Ochrona przed atakami (100 req/min) z cleanup
+### Uwierzytelnianie i Autoryzacja
+- ✅ **NextAuth.js v5** - Pełna implementacja z Credentials Provider
+- ✅ **Role-based access** - Administrator i Fizjoterapeuta z kontrolą uprawnień
+- ✅ **Middleware Protection** - Wszystkie trasy chronione, wymuszane logowanie
+- ✅ **JWT Sessions** - Bezpieczne sesje z konfigurowalnym wygasaniem (24h)
+
+### Ochrona API
+- ✅ **Zod Validation** - Wszystkie endpointy walidowane schematami
+- ✅ **Rate Limiting** - Ochrona przed atakami (100 req/min) z cleanup
 - ✅ **CORS** - Konfigurowalne zasady CORS
-- ✅ **Zod validation** - Walidacja danych na serwerze (wszystkie endpointy)
-- ✅ **Middleware** - Ochrona wszystkich tras
+- ✅ **Pagination Limits** - Maksymalnie 100 rekordów na stronę (ochrona pamięci)
+
+### Bezpieczeństwo Danych
+- ✅ **Password Security** - bcrypt z 12 salt rounds, minimum 8 znaków
+- ✅ **CSV Injection Protection** - Sanityzacja eksportu danych
+- ✅ **XSS Protection** - Escape HTML w emailach i treści
+- ✅ **Prompt Injection Protection** - Filtrowanie wiadomości chat AI
+
+### Headers i HTTPS
+- ✅ **Security Headers** - CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy
+- ✅ **HTTPS Enforcement** - Automatyczne przekierowanie w produkcji
+- ✅ **Permissions Policy** - Blokowanie dostępu do kamery, mikrofonu, geolokacji
+
+### Audit i Monitoring
 - ✅ **Error Boundaries** - Obsługa błędów React
+- ✅ **API Docs Protection** - Swagger dostępny tylko dla zalogowanych
 
 ---
 
@@ -60,7 +78,7 @@ Aplikacja wykorzystuje nowoczesny **Cyberpunk + Liquid Glass** design z:
 | 📈 Raporty Postępów | Cotygodniowa analiza z trendami AI |
 | 📆 Calendar Export | Export do Google/Apple Calendar (.ics) |
 | 📖 API REST | Pełne REST API z paginacją i filtrami |
-| 📚 Swagger/OpenAPI | Dokumentacja API dostępna pod /docs |
+| 📚 Swagger/OpenAPI | Dokumentacja API dostępna pod /docs (wymaga logowania) |
 | 🐳 Docker | Uruchom w kontenerze jednym poleceniem |
 | 🧪 E2E Tests | Playwright testy dla krytycznych ścieżek użytkownika |
 
@@ -89,15 +107,30 @@ docker-compose up -d
 
 ## 📖 Pierwsze uruchomienie
 
+1. Skopiuj `.env.example` do `.env` i uzupełnij zmienne:
+
+```bash
+cp .env.example .env
+# Edytuj .env i ustaw AUTH_SECRET, ZAI_API_KEY itp.
+```
+
+2. Wygeneruj sekret AUTH_SECRET:
+
+```bash
+openssl rand -base64 32
+```
+
+3. Uruchom seed bazy danych:
+
 ```bash
 curl -X POST http://localhost:3000/api/seed
 ```
 
-Po uruchomieniu seed, zaloguj się używając danych admina utworzonych podczas seed.
+**Ważne:** Ustaw `DEFAULT_ADMIN_PASSWORD` w `.env` przed uruchomieniem seed!
 
-Domyślne dane:
-- **Email:** admin@example.com
-- **Hasło:** admin123
+Domyślne dane po seed:
+- **Email:** admin@rehab.pl
+- **Hasło:** (z DEFAULT_ADMIN_PASSWORD w .env)
 
 ---
 
@@ -116,9 +149,31 @@ Domyślne dane:
 ## ⚙️ Zmienne środowiskowe
 
 ```env
+# Database
 DATABASE_URL="file:./dev.db"
-AUTH_SECRET="wygeneruj wlasny-klucz-openssl-rand-base64-32"
+
+# Authentication (REQUIRED)
+AUTH_SECRET="wygeneruj-openssl-rand-base64-32"
+
+# AI Integration
+ZAI_API_KEY="your-api-key"
+
+# Email (optional)
+SMTP_HOST="smtp.example.com"
+SMTP_PORT="587"
+SMTP_USER=""
+SMTP_PASS=""
+
+# Push Notifications
+VAPID_PUBLIC_KEY=""
+VAPID_PRIVATE_KEY=""
+VAPID_SUBJECT=""
+
+# Default Admin Password for seed
+DEFAULT_ADMIN_PASSWORD="your-secure-password"
 ```
+
+Zobacz `.env.example` dla pełnej listy zmiennych.
 
 ---
 
@@ -128,12 +183,14 @@ AUTH_SECRET="wygeneruj wlasny-klucz-openssl-rand-base64-32"
 src/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes
-│   │   ├── patients/      # Patients endpoints
+│   │   ├── patients/      # Patients endpoints (paginated, validated)
 │   │   ├── plans/         # Plans endpoints
 │   │   ├── exercises/     # Exercises endpoints
 │   │   ├── diagnoses/     # Diagnoses endpoints
-│   │   ├── users/         # Users endpoints
-│   │   └── docs/          # Swagger docs
+│   │   ├── users/         # Users endpoints (admin only)
+│   │   ├── chat/          # AI chat (prompt injection protected)
+│   │   ├── reports/       # Progress reports
+│   │   └── docs/          # Swagger docs (auth protected)
 │   ├── patients/          # Patients pages
 │   ├── plans/             # Plans pages
 │   ├── exercises/         # Exercises page
@@ -147,10 +204,10 @@ src/
 │   └── exercises/         # Exercise components
 ├── context/               # React Context
 ├── lib/                   # Utilities
-│   ├── authMiddleware.ts  # Auth helpers
+│   ├── authMiddleware.ts  # Auth helpers (requireAuth, requireAdmin)
 │   ├── rateLimit.ts       # Rate limiting
-│   ├── useDebounce.ts     # Debounce hook
-│   ├── validations.ts     # Zod schemas
+│   ├── email.ts           # Email sending (XSS protected)
+│   ├── validations.ts     # Zod schemas (8+ char passwords)
 │   └── prisma.ts          # Database client
 ├── test/                  # Test setup
 └── types/                 # TypeScript types
@@ -166,7 +223,7 @@ src/
 | UI | React 19 + Tailwind CSS 4 |
 | Język | TypeScript |
 | Database | SQLite + Prisma ORM |
-| Auth | NextAuth.js (JWT) |
+| Auth | NextAuth.js v5 (JWT) |
 | Validation | Zod |
 | Testing | Vitest + React Testing Library + Playwright |
 | API Docs | Swagger UI + OpenAPI 3.0 |
@@ -201,44 +258,82 @@ npm run e2e:headed
 
 | Metoda | Endpoint | Opis |
 |--------|----------|------|
-| GET/POST | `/api/patients` | Lista i tworzenie pacjentów |
+| GET/POST | `/api/patients` | Lista i tworzenie pacjentów (max 100/page) |
 | GET/PUT/DELETE | `/api/patients/[id]` | Operacje na pojedynczym pacjencie |
-| GET | `/api/patients/export` | Export pacjentów (csv/json) |
+| GET | `/api/patients/export` | Export pacjentów (csv/json) - CSV injection protected |
 | GET/POST | `/api/plans` | Lista i tworzenie planów |
 | GET/PUT/DELETE | `/api/plans/[id]` | Operacje na pojedynczym planie |
 | GET | `/api/exercises` | Lista ćwiczeń |
 | POST | `/api/diagnoses` | Tworzenie diagnozy |
 | POST | `/api/users` | Tworzenie użytkownika (admin only) |
-| GET | `/api/docs` | Specyfikacja OpenAPI |
+| GET | `/api/docs` | Specyfikacja OpenAPI (auth required) |
+| POST | `/api/chat` | AI Chat (max 2000 chars, prompt injection protected) |
 
 ### Przykłady
 
 ```bash
-# Pobierz pacjentów z paginacją
+# Pobierz pacjentów z paginacją (max limit=100)
 curl -H "Authorization: Bearer TOKEN" "http://localhost:3000/api/patients?page=1&limit=20"
 
 # Pobierz plany z filtrowaniem
 curl -H "Authorization: Bearer TOKEN" "http://localhost:3000/api/plans?status=active&patientId=xxx"
 
-# Export pacjentów do CSV
+# Export pacjentów do CSV (sanitized)
 curl -H "Authorization: Bearer TOKEN" "http://localhost:3000/api/patients/export?format=csv" -o patients.csv
 ```
 
 ### Dokumentacja Swagger
 
-Otwórz `http://localhost:3000/docs` w przeglądarce aby zobaczyć interaktywną dokumentację API.
+Otwórz `http://localhost:3000/docs` w przeglądarce (wymaga zalogowania).
+
+---
+
+## 🔄 Changelog
+
+### v0.2.0 (2026-02-26) - Security Update
+
+**CRITICAL Fixes:**
+- ✅ Pełna implementacja uwierzytelniania (Credentials Provider + requireAuth/requireAdmin)
+- ✅ Middleware z wymuszaniem autoryzacji na wszystkich trasach
+- ✅ Seed endpoint zabezpieczony (dev-only + admin auth)
+- ✅ Utworzono `.env.example` z dokumentacją zmiennych
+
+**HIGH Fixes:**
+- ✅ Walidacja limitu paginacji (max 100)
+- ✅ Ochrona CSV Injection w eksporcie danych
+- ✅ XSS Protection w emailach (HTML escape)
+- ✅ Zod walidacja przy tworzeniu użytkowników
+- ✅ Blokada ustawiania roli przez klienta (tylko admin może tworzyć adminów)
+- ✅ Limit długości wiadomości chat (2000 znaków)
+- ✅ Security headers w next.config.ts (CSP, X-Frame-Options, etc.)
+- ✅ Swagger docs wymaga autoryzacji
+- ✅ Usunięto nieużywany Postgres z docker-compose
+
+**MEDIUM Fixes:**
+- ✅ Naprawa mutacji Date w getWeekBounds()
+- ✅ Usunięcie typów `any` w export/reports
+- ✅ Zwiększenie min. długości hasła do 8 znaków
+- ✅ HTTPS enforcement w middleware
+
+**LOW Fixes:**
+- ✅ Dynamiczny rok w copyright
+- ✅ Emoji jako HTML entity w login page
+- ✅ Obsługa JSON parse error w API
 
 ---
 
 ## 🤝 Contributing
 
-Pull requesty są mile widziane!
+Pull requesty są mile widziane! Przed wysłaniem PR upewnij się, że:
+- Wszystkie testy przechodzą
+- Kod jest sformatowany
+- Nowe funkcje mają testy
 
 ---
 
 ## 📄 License
 
-[MIT](LICENSE) © 2025
+[MIT](LICENSE) © 2025-2026
 
 ---
 

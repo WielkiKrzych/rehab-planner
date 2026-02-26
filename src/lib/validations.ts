@@ -46,13 +46,22 @@ export const PlanSchema = z.object({
   weeks: z.array(PlanWeekSchema).optional().default([]),
 });
 
+// Increased minimum password length from 6 to 8 for better security
+// NIST SP 800-63B recommends minimum 8 characters
 export const UserSchema = z.object({
   email: z.string().email('Nieprawidłowy email').min(1, 'Email jest wymagany'),
-  password: z.string().min(6, 'Hasło musi mieć minimum 6 znaków').max(100),
+  password: z
+    .string()
+    .min(8, 'Hasło musi mieć minimum 8 znaków')
+    .max(100, 'Hasło może mieć maksymalnie 100 znaków')
+    .regex(/[A-Z]/, 'Hasło musi zawierać przynajmniej jedną wielką literę')
+    .regex(/[a-z]/, 'Hasło musi zawierać przynajmniej jedną małą literę')
+    .regex(/[0-9]/, 'Hasło musi zawierać przynajmniej jedną cyfrę'),
   name: z.string().max(100).optional(),
   role: z.enum(['admin', 'physio']).optional().default('physio'),
 });
 
+// Simplified schema for login (no complexity requirements)
 export const LoginSchema = z.object({
   email: z.string().email('Nieprawidłowy email'),
   password: z.string().min(1, 'Hasło jest wymagane'),

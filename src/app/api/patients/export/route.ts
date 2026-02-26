@@ -1,6 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/authMiddleware';
+import { Patient } from '@prisma/client';
+
+/**
+ * Sanitize CSV value to prevent CSV Injection attacks
+ * Prefix dangerous characters with single quote to prevent formula execution
+ */
+function sanitizeCSV(value: string | null | undefined): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  
+  const strValue = String(value);
+  
+  // Escape double quotes by doubling them
+  const escaped = strValue.replace(/"/g, '""');
+  
+  // Check for dangerous characters that could trigger formula execution
+  // These characters at the start of a cell can trigger Excel/LibreOffice formulas
+  if (/^[=+\-@\t\r]/.test(escaped)) {
+    return "'" + escaped;
+  }
+  
+  return escaped;
+}
+
+interface PatientWithRelations {
+  id: string;
+  firstName: string;
+  lastName: string;
+  birthDate: string;
+  phone: string | null;
+  email: string | null;
+  notes: string;
+  diagnoses: Array<{ id: string; name: string; date: string; notes: string | null }>;
+  plans: Array<{ id: string; name: string; status: string; weeks: unknown[] }>;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export async function GET(request: NextRequest) {
   const authError = await requireAuth();
@@ -20,7 +58,7 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: { updatedAt: 'desc' },
-    });
+    }) as PatientWithRelations[];
 
     if (format === 'csv') {
       const headers = [
@@ -37,24 +75,24 @@ export async function GET(request: NextRequest) {
         'Data aktualizacji',
       ];
 
-      const rows = patients.map((p: any) => [
-        p.id,
-        p.firstName,
-        p.lastName,
-        p.birthDate,
-        p.phone || '',
-        p.email || '',
-        p.notes.replace(/"/g, '""'),
-        p.diagnoses.length,
-        p.plans.length,
-        p.createdAt.toISOString(),
-        p.updatedAt.toISOString(),
+      const rows = patients.map((p) => [
+        sanitizeCSV(p.id),
+        sanitizeCSV(p.firstName),
+        sanitizeCSV(p.lastName),
+        sanitizeCSV(p.birthDate),
+        sanitizeCSV(p.phone),
+        sanitizeCSV(p.email),
+        sanitizeCSV(p.notes),
+        sanitizeCSV(String(p.diagnoses.length)),
+        sanitizeCSV(String(p.plans.length)),
+        sanitizeCSV(p.createdAt.toISOString()),
+        sanitizeCSV(p.updatedAt.toISOString()),
       ]);
 
       const csvContent = [
-        headers.join(','),
-        ...rows.map((row: any) =>
-          row.map((cell: any) => `"${cell}"`).join(',')
+        headers.map(h => `"${h}"`).join(','),
+        ...rows.map((row) =>
+          row.map((cell) => `"${cell}"`).join(',')
         ),
       ].join('\n');
 
@@ -65,7 +103,7 @@ export async function GET(request: NextRequest) {
         },
       });
     } else if (format === 'json') {
-      const exportData = patients.map((p: any) => ({
+      const exportData = patients.map((p) => ({
         id: p.id,
         firstName: p.firstName,
         lastName: p.lastName,
@@ -73,12 +111,12 @@ export async function GET(request: NextRequest) {
         phone: p.phone,
         email: p.email,
         notes: p.notes,
-        diagnoses: p.diagnoses.map((d: any) => ({
+        diagnoses: p.diagnoses.map((d) => ({
           name: d.name,
           date: d.date,
           notes: d.notes,
         })),
-        plans: p.plans.map((pl: any) => ({
+        plans: p.plans.map((pl) => ({
           name: pl.name,
           status: pl.status,
           weeksCount: pl.weeks.length,

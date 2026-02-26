@@ -4,6 +4,23 @@ import { rateLimit } from '@/lib/rateLimit';
 import { PatientSchema } from '@/lib/validations';
 import { requireAuth } from '@/lib/authMiddleware';
 
+// Maximum limit for pagination to prevent memory exhaustion
+const MAX_PAGINATION_LIMIT = 100;
+const DEFAULT_PAGINATION_LIMIT = 20;
+
+/**
+ * Parse and validate pagination parameters
+ */
+function parsePagination(searchParams: URLSearchParams) {
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+  const limit = Math.min(
+    Math.max(1, parseInt(searchParams.get('limit') || String(DEFAULT_PAGINATION_LIMIT))),
+    MAX_PAGINATION_LIMIT
+  );
+  const skip = (page - 1) * limit;
+  return { page, limit, skip };
+}
+
 export async function GET(request: NextRequest) {
   const authError = await requireAuth();
   if (authError) return authError;
@@ -20,9 +37,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = parsePagination(searchParams);
 
     const where = search
       ? {
@@ -78,38 +93,38 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let body;
   try {
-    const body = await request.json();
-    
-    const validation = PatientSchema.safeParse(body);
-    
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.flatten().fieldErrors },
-        { status: 400 }
-      );
-    }
-    
-    const { firstName, lastName, birthDate, phone, email, notes } = validation.data;
-    
-    const patient = await prisma.patient.create({
-      data: {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        birthDate,
-        phone: phone || null,
-        email: email || null,
-        notes: notes || '',
-      },
-    });
-    return NextResponse.json(patient, {
-      headers: { 'X-RateLimit-Remaining': String(remaining) },
-    });
-  } catch (error) {
-    console.error('Failed to create patient:', error);
+    body = await request.json();
+  } catch {
     return NextResponse.json(
-      { error: 'Failed to create patient' },
-      { status: 500 }
+      { error: 'Invalid JSON in request body' },
+      { status: 400 }
     );
   }
+  
+  const validation = PatientSchema.safeParse(body);
+  
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', details: validation.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
+  
+  const { firstName, lastName, birthDate, phone, email, notes } = validation.data;
+  
+  const patient = await prisma.patient.create({
+    data: {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      birthDate,
+      phone: phone || null,
+      email: email || null,
+      notes: notes || '',
+    },
+  });
+  return NextResponse.json(patient, {
+    headers: { 'X-RateLimit-Remaining': String(remaining) },
+  });
 }

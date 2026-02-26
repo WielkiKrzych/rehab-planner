@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/authMiddleware';
 import swaggerJsdoc from 'swagger-jsdoc';
 
 const options: swaggerJsdoc.Options = {
@@ -88,6 +89,11 @@ const options: swaggerJsdoc.Options = {
 };
 
 export async function GET(request: NextRequest) {
+  // Security: Require authentication for API docs
+  // This prevents exposing API structure to unauthorized users
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const specs = swaggerJsdoc(options);
     return NextResponse.json(specs);
