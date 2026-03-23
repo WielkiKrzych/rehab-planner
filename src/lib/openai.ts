@@ -1,5 +1,22 @@
 import OpenAI from 'openai';
 
+export class OpenAIError extends Error {
+  constructor(
+    message: string,
+    public readonly code: 'NOT_CONFIGURED' | 'API_ERROR',
+    public readonly cause?: unknown
+  ) {
+    super(message);
+    this.name = 'OpenAIError';
+  }
+}
+
+export interface OpenAIResult {
+  success: boolean;
+  data?: string;
+  error?: OpenAIError;
+}
+
 const openai = new OpenAI({
   apiKey: process.env.ZAI_API_KEY,
   baseURL: 'https://api.z.ai/api/paas/v4/',
@@ -26,9 +43,13 @@ export async function getAIResponse(userMessage: string, context?: {
   patientName?: string;
   recentCheckins?: Array<{date: string; painLevel: number; energyLevel: number; sleepQuality: number; mood: number}>;
   goals?: Array<{name: string; goalType: string}>;
-}) {
+}): Promise<OpenAIResult> {
   if (!process.env.ZAI_API_KEY) {
-    return null;
+    const error = new OpenAIError(
+      'AI service not configured - ZAI_API_KEY is missing',
+      'NOT_CONFIGURED'
+    );
+    return { success: false, error };
   }
 
   try {
@@ -72,9 +93,15 @@ export async function getAIResponse(userMessage: string, context?: {
       temperature: 0.7,
     });
 
-    return completion.choices[0]?.message?.content || 'Przepraszam, nie udało mi się odpowiedzieć.';
+    const responseContent = completion.choices[0]?.message?.content || 'Przepraszam, nie udało mi się odpowiedzieć.';
+    return { success: true, data: responseContent };
   } catch (error) {
     console.error('GLM-5 API error:', error);
-    return null;
+    const apiError = new OpenAIError(
+      `AI API request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      'API_ERROR',
+      error
+    );
+    return { success: false, error: apiError };
   }
 }

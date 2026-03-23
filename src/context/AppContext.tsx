@@ -85,55 +85,80 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addPatient = useCallback(async (patient: Omit<Patient, 'id' | 'createdAt' | 'updatedAt' | 'diagnoses'>) => {
-    const res = await fetch('/api/patients', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patient),
-    });
-    const newPatient = await handleResponse<Patient>(res);
-    await refreshPatients();
-    return { ...newPatient, diagnoses: [] };
+    try {
+      const res = await fetch('/api/patients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patient),
+      });
+      const newPatient = await handleResponse<Patient>(res);
+      await refreshPatients();
+      return { ...newPatient, diagnoses: [] };
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add patient');
+      throw err;
+    }
   }, [refreshPatients]);
 
   const updatePatient = useCallback(async (id: string, patient: Partial<Patient>) => {
-    const res = await fetch(`/api/patients/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patient),
-    });
-    await handleResponse(res);
-    await refreshPatients();
+    try {
+      const res = await fetch(`/api/patients/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patient),
+      });
+      await handleResponse(res);
+      await refreshPatients();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update patient');
+      throw err;
+    }
   }, [refreshPatients]);
 
   const addDiagnosis = useCallback(async (patientId: string, diagnosis: Omit<Diagnosis, 'id' | 'patientId'>) => {
-    const res = await fetch('/api/diagnoses', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...diagnosis, patientId }),
-    });
-    await handleResponse(res);
-    await refreshPatients();
+    try {
+      const res = await fetch('/api/diagnoses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...diagnosis, patientId }),
+      });
+      await handleResponse(res);
+      await refreshPatients();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add diagnosis');
+      throw err;
+    }
   }, [refreshPatients]);
 
   const addPlan = useCallback(async (plan: Omit<RehabilitationPlan, 'id' | 'createdAt'>) => {
-    const res = await fetch('/api/plans', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(plan),
-    });
-    const newPlan = await handleResponse<RehabilitationPlan>(res);
-    await refreshPlans();
-    return newPlan;
+    try {
+      const res = await fetch('/api/plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(plan),
+      });
+      const newPlan = await handleResponse<RehabilitationPlan>(res);
+      await refreshPlans();
+      return newPlan;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add plan');
+      throw err;
+    }
   }, [refreshPlans]);
 
   const updatePlan = useCallback(async (id: string, plan: Partial<RehabilitationPlan>) => {
-    const res = await fetch(`/api/plans/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(plan),
-    });
-    await handleResponse(res);
-    await refreshPlans();
+    try {
+      const res = await fetch(`/api/plans/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(plan),
+      });
+      await handleResponse(res);
+      await refreshPlans();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update plan');
+      throw err;
+    }
   }, [refreshPlans]);
 
   useEffect(() => {

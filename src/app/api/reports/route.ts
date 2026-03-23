@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/authMiddleware';
+import { rateLimit } from '@/lib/rateLimit';
 import { DailyCheckin, Patient, ProgressReport } from '@prisma/client';
 
 /**
@@ -108,6 +109,14 @@ export async function GET(request: NextRequest) {
   const authError = await requireAuth();
   if (authError) return authError;
 
+  const { allowed, remaining } = rateLimit(request);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get('patientId');
@@ -121,7 +130,7 @@ export async function GET(request: NextRequest) {
       orderBy: { weekStart: 'desc' },
     });
 
-    return NextResponse.json(reports);
+    return NextResponse.json(reports, { headers: { 'X-RateLimit-Remaining': String(remaining) } });
   } catch (error) {
     console.error('Failed to fetch reports:', error);
     return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
@@ -131,6 +140,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const authError = await requireAuth();
   if (authError) return authError;
+
+  const { allowed, remaining } = rateLimit(request);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
 
   let body;
   try {
@@ -170,7 +187,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Report for this week already exists', report: existingReport }, { status: 400 });
   }
 
-  const checkins = await prisma.dailyCheckin.findMany({
+  const checkinsData = await prisma.dailyCheckin.findMany({
     where: {
       patientId,
       date: {
@@ -187,6 +204,12 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  // Transform to match CheckinForAnalysis interface (date: Date)
+  const checkins: CheckinForAnalysis[] = checkinsData.map(c => ({
+    ...c,
+    date: new Date(c.date),
+  }));
+
   const aiAnalysis = analyzeProgress(checkins, patient.firstName);
 
   const report = await prisma.progressReport.create({
@@ -199,5 +222,5 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json(report);
+  return NextResponse.json(report, { headers: { 'X-RateLimit-Remaining': String(remaining) } });
 }

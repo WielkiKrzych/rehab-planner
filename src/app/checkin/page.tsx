@@ -4,6 +4,12 @@ import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { useApp } from '@/context/AppContext';
 
+interface CheckinResult {
+  status: 'full' | 'normal' | 'light' | 'rest';
+  readinessScore: number;
+  aiRecommendation: string;
+}
+
 export default function DailyCheckinPage() {
   const { patients } = useApp();
   const [selectedPatient, setSelectedPatient] = useState('');
@@ -13,7 +19,7 @@ export default function DailyCheckinPage() {
   const [sleepQuality, setSleepQuality] = useState(5);
   const [mood, setMood] = useState(5);
   const [notes, setNotes] = useState('');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<CheckinResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 

@@ -78,10 +78,9 @@ export function PlanBuilder({ initialPlan }: PlanBuilderProps) {
 
   const removeWeek = (weekIndex: number) => {
     if (weeks.length <= 1) return;
-    const newWeeks = weeks.filter((_, i) => i !== weekIndex);
-    newWeeks.forEach((week, i) => {
-      week.weekNumber = i + 1;
-    });
+    const newWeeks = weeks
+      .filter((_, i) => i !== weekIndex)
+      .map((week, i) => ({ ...week, weekNumber: i + 1 }));
     setWeeks(newWeeks);
     if (selectedWeek >= newWeeks.length) {
       setSelectedWeek(newWeeks.length - 1);

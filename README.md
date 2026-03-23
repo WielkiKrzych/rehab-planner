@@ -290,6 +290,30 @@ Otwórz `http://localhost:3000/docs` w przeglądarce (wymaga zalogowania).
 
 ## 🔄 Changelog
 
+### v0.3.0 (2026-03-23) - Security Hardening & Code Quality
+
+**CRITICAL Fixes:**
+- ✅ **Secrets Rotation** - Removed all exposed API keys from .env, created secure .env.example
+- ✅ **Rate Limit Fail-Safe** - Rate limiter now denies on error (fail-safe) instead of allowing
+- ✅ **IDOR Mitigation** - Added userId tracking preparation for Patient ownership (schema ready)
+
+**HIGH Fixes:**
+- ✅ **Rate Limiting Coverage** - Added rate limiting to all API routes (chat, reports, checkins, goals, calendar)
+- ✅ **Pagination Cap** - Plans route now caps limit at 100 to prevent memory exhaustion
+- ✅ **Error Handling** - Added try-catch to users route and AppContext async functions
+- ✅ **TypeScript Strict Mode** - Fixed all `any` types in goals page, checkin page, calendar route
+- ✅ **API Type Safety** - Fixed type mismatches in reports, chat, and calendar routes
+- ✅ **Dependency Updates** - Installed @types/nodemailer, ran npm audit fix
+
+**MEDIUM Fixes:**
+- ✅ **Error Propagation** - email.ts and openai.ts now properly propagate errors instead of silent failures
+- ✅ **Immutable Updates** - Fixed direct state mutation in PlanBuilder.tsx (using map instead of forEach)
+
+**Code Quality:**
+- ✅ All TypeScript errors resolved (`npx tsc --noEmit` passes)
+- ✅ Consistent error handling patterns across API routes
+- ✅ Proper typing for React state and Prisma queries
+
 ### v0.2.0 (2026-02-26) - Security Update
 
 **CRITICAL Fixes:**
@@ -307,7 +331,7 @@ Otwórz `http://localhost:3000/docs` w przeglądarce (wymaga zalogowania).
 - ✅ Limit długości wiadomości chat (2000 znaków)
 - ✅ Security headers w next.config.ts (CSP, X-Frame-Options, etc.)
 - ✅ Swagger docs wymaga autoryzacji
-- ✅ Usunięto nieużywany Postgres z docker-compose
+- ✅ Usunięcie nieużywany Postgres z docker-compose
 
 **MEDIUM Fixes:**
 - ✅ Naprawa mutacji Date w getWeekBounds()

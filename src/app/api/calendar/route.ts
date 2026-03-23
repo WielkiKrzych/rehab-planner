@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PlanExercise } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/authMiddleware';
+import { rateLimit } from '@/lib/rateLimit';
 
 function generateICS(events: Array<{
   id: string;
@@ -41,6 +43,14 @@ export async function GET(request: NextRequest) {
   const authError = await requireAuth();
   if (authError) return authError;
 
+  const { allowed, remaining } = rateLimit(request);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get('patientId');
@@ -63,6 +73,9 @@ export async function GET(request: NextRequest) {
               include: {
                 days: {
                   orderBy: { dayNumber: 'asc' },
+                  include: {
+                    exercises: true,
+                  },
                 },
               },
             },
@@ -111,7 +124,7 @@ export async function GET(request: NextRequest) {
             dayDate.setDate(dayDate.getDate() + (day.dayNumber - 1));
 
             if (day.exercises.length > 0) {
-              const exerciseNames = day.exercises.slice(0, 3).map((ex: any) => ex.exerciseId).join(', ');
+              const exerciseNames = day.exercises.slice(0, 3).map((ex: PlanExercise) => ex.exerciseId).join(', ');
               events.push({
                 id: `plan-${plan.id}-${day.id}`,
                 title: `🏋️ Trening: ${plan.name}`,
@@ -133,6 +146,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'Content-Type': 'text/calendar; charset=utf-8;',
         'Content-Disposition': `attachment; filename="rehab-calendar-${patient.firstName}-${patient.lastName}.ics"`,
+        'X-RateLimit-Remaining': String(remaining),
       },
     });
   } catch (error) {

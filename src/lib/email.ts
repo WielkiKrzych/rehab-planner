@@ -1,5 +1,21 @@
 import nodemailer from 'nodemailer';
 
+export class EmailError extends Error {
+  constructor(
+    message: string,
+    public readonly code: 'NOT_CONFIGURED' | 'SEND_FAILED',
+    public readonly cause?: unknown
+  ) {
+    super(message);
+    this.name = 'EmailError';
+  }
+}
+
+export interface EmailResult {
+  success: boolean;
+  error?: EmailError;
+}
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.example.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
@@ -30,10 +46,14 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => htmlEntities[char] || char);
 }
 
-export async function sendEmail(options: EmailOptions): Promise<boolean> {
+export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
   if (!process.env.SMTP_HOST) {
     console.log('Email not configured - skipping:', options.subject);
-    return false;
+    const error = new EmailError(
+      'Email service not configured',
+      'NOT_CONFIGURED'
+    );
+    return { success: false, error };
   }
 
   try {
@@ -41,10 +61,15 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       from: process.env.SMTP_FROM || 'Rehab Planner <noreply@rehab-planner.example.com>',
       ...options,
     });
-    return true;
+    return { success: true };
   } catch (error) {
     console.error('Email send error:', error);
-    return false;
+    const emailError = new EmailError(
+      `Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      'SEND_FAILED',
+      error
+    );
+    return { success: false, error: emailError };
   }
 }
 

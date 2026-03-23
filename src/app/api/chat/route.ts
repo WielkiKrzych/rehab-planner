@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/authMiddleware';
+import { rateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
-import { getAIResponse } from '@/lib/openai';
+import { getAIResponse, OpenAIResult } from '@/lib/openai';
 
 // Maximum message length to prevent memory exhaustion and potential abuse
 const MAX_MESSAGE_LENGTH = 2000;
@@ -88,6 +89,14 @@ export async function GET(request: NextRequest) {
   const authError = await requireAuth();
   if (authError) return authError;
 
+  const { allowed, remaining } = rateLimit(request);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get('patientId');
@@ -102,7 +111,7 @@ export async function GET(request: NextRequest) {
       take: 50,
     });
 
-    return NextResponse.json(messages);
+    return NextResponse.json(messages, { headers: { 'X-RateLimit-Remaining': String(remaining) } });
   } catch (error) {
     console.error('Failed to fetch messages:', error);
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
@@ -112,6 +121,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const authError = await requireAuth();
   if (authError) return authError;
+
+  const { allowed, remaining } = rateLimit(request);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
 
   let body;
   try {
@@ -177,17 +194,27 @@ export async function POST(request: NextRequest) {
 
   // Try OpenAI first, fallback to simple AI
   // Use sanitized message for AI to prevent injection
-  const aiResponse = await getAIResponse(sanitizedMessage, {
+  const aiResult = await getAIResponse(sanitizedMessage, {
     patientName: patient.firstName,
     recentCheckins: recentCheckins.map(c => ({
-      date: c.date.toISOString().split('T')[0],
+      date: c.date,
       painLevel: c.painLevel,
       energyLevel: c.energyLevel,
       sleepQuality: c.sleepQuality,
       mood: c.mood,
     })),
     goals: goals.map(g => ({ name: g.name, goalType: g.goalType })),
-  }) || generateAIResponse(sanitizedMessage, patient.firstName);
+  });
+
+  let aiResponse: string;
+  if (aiResult.success && aiResult.data) {
+    aiResponse = aiResult.data;
+  } else {
+    if (aiResult.error) {
+      console.error('AI response failed:', aiResult.error.message, 'Code:', aiResult.error.code);
+    }
+    aiResponse = generateAIResponse(sanitizedMessage, patient.firstName);
+  }
 
   const assistantMessage = await prisma.chatMessage.create({
     data: {
@@ -200,5 +227,5 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     userMessage,
     assistantMessage,
-  });
+  }, { headers: { 'X-RateLimit-Remaining': String(remaining) } });
 }

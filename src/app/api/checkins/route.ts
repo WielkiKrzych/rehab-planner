@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/authMiddleware';
+import { rateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
 
 const DailyCheckinSchema = z.object({
@@ -56,6 +57,14 @@ export async function GET(request: NextRequest) {
   const authError = await requireAuth();
   if (authError) return authError;
 
+  const { allowed, remaining } = rateLimit(request);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get('patientId');
@@ -71,7 +80,7 @@ export async function GET(request: NextRequest) {
       take: 30,
     });
 
-    return NextResponse.json(checkins);
+    return NextResponse.json(checkins, { headers: { 'X-RateLimit-Remaining': String(remaining) } });
   } catch (error) {
     console.error('Failed to fetch checkins:', error);
     return NextResponse.json({ error: 'Failed to fetch checkins' }, { status: 500 });
@@ -81,6 +90,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const authError = await requireAuth();
   if (authError) return authError;
+
+  const { allowed, remaining } = rateLimit(request);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'X-RateLimit-Remaining': '0' } }
+    );
+  }
 
   try {
     const body = await request.json();
@@ -131,7 +148,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ...checkin,
       readinessScore,
-    });
+    }, { headers: { 'X-RateLimit-Remaining': String(remaining) } });
   } catch (error) {
     console.error('Failed to create checkin:', error);
     return NextResponse.json({ error: 'Failed to create checkin' }, { status: 500 });

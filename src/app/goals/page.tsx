@@ -4,17 +4,42 @@ import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { useApp } from '@/context/AppContext';
 
+interface DailyPlan {
+  day: number;
+  duration: number;
+  intensity: 'brak' | 'niska' | 'średnia' | 'wysoka';
+}
+
+interface WeeklyPlan {
+  weekNumber: number;
+  focus: string;
+  dailyPlan: DailyPlan[];
+}
+
+interface GeneratedPlan {
+  goal: string;
+  weeks: WeeklyPlan[];
+}
+
+interface Goal {
+  id: string;
+  name: string;
+  goalType: string;
+  description?: string;
+  status: 'active' | 'completed' | 'paused';
+}
+
 export default function GoalsPage() {
   const { patients } = useApp();
   const [selectedPatient, setSelectedPatient] = useState('');
-  const [goals, setGoals] = useState<any[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [goalType, setGoalType] = useState('recovery');
   const [targetDate, setTargetDate] = useState('');
-  const [generatedPlan, setGeneratedPlan] = useState<any>(null);
+  const [generatedPlan, setGeneratedPlan] = useState<GeneratedPlan | null>(null);
 
   const loadGoals = async (patientId: string) => {
     try {
@@ -197,13 +222,13 @@ export default function GoalsPage() {
                 </h3>
                 
                 <div className="space-y-6">
-                  {generatedPlan.weeks.map((week: any) => (
+                  {generatedPlan.weeks.map((week: WeeklyPlan) => (
                     <div key={week.weekNumber} className="border border-white/10 rounded-xl p-4">
                       <h4 className="text-lg font-semibold text-neon-cyan mb-3">
                         Tydzień {week.weekNumber}: {week.focus}
                       </h4>
                       <div className="grid grid-cols-7 gap-2">
-                        {week.dailyPlan.map((day: any, idx: number) => (
+                        {week.dailyPlan.map((day: DailyPlan, idx: number) => (
                           <div
                             key={idx}
                             className={`p-2 rounded-lg text-xs ${

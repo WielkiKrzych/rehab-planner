@@ -38,33 +38,40 @@ export async function POST(request: NextRequest) {
   // Determine the role - only admin can create admin users
   const role = (canCreateAdmin && requestedRole === 'admin') ? 'admin' : 'physio';
 
-  // Check if user already exists
-  const existingUser = await prisma.user.findUnique({
-    where: { email: email.trim().toLowerCase() },
-  });
+  try {
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+    });
 
-  if (existingUser) {
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'User with this email already exists' },
+        { status: 400 }
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const user = await prisma.user.create({
+      data: {
+        email: email.trim().toLowerCase(),
+        password: hashedPassword,
+        name: name?.trim() || null,
+        role,
+      },
+    });
+
+    return NextResponse.json({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    });
+  } catch (error) {
     return NextResponse.json(
-      { error: 'User with this email already exists' },
-      { status: 400 }
+      { error: 'Database operation failed' },
+      { status: 500 }
     );
   }
-
-  const hashedPassword = await bcrypt.hash(password, 12);
-
-  const user = await prisma.user.create({
-    data: {
-      email: email.trim().toLowerCase(),
-      password: hashedPassword,
-      name: name?.trim() || null,
-      role,
-    },
-  });
-
-  return NextResponse.json({
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-  });
 }

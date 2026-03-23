@@ -54,7 +54,7 @@ export function rateLimit(req: NextRequest) {
     return { allowed: true, remaining: MAX_REQUESTS - record.count };
   } catch (error) {
     console.error('Rate limit error:', error);
-    return { allowed: true, remaining: MAX_REQUESTS };
+    return { allowed: false, remaining: 0 };
   }
 }
 
