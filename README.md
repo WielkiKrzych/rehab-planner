@@ -70,12 +70,15 @@ Aplikacja wykorzystuje nowoczesny **Cyberpunk + Liquid Glass** design z:
 | 📊 Dashboard | Statystyki na żywo, ostatnia aktywność |
 | 👥 Pacjenci | Pełne CRUD, historia diagnoz, plany rehabilitacji, export CSV/JSON |
 | 📑 Kreator Planów | Builder z tygodniami, dniami i ćwiczeniami |
-| 🏋️ Baza Ćwiczeń | 30+ ćwiczeń z kategoryzacją i filtrami |
+| ⚙️ **Generator planu** | Dobór 5 ćwiczeń wg patologii, fazy i bólu — algorytm regułowy, progresja 1–4 tyg. |
+| 🏷️ **Tagi kliniczne** | Edytor mapowania ćwiczeń na patologie, fazy, dawkowanie i przeciwwskazania |
+| 🖨️ **Wydruk dla pacjenta** | Czarno-biała rozpiska planu (Drukuj / PDF) z linkami do wideo |
+| 🏋️ Baza Ćwiczeń | 77 ćwiczeń z kategoryzacją, filtrami i tagami klinicznymi |
 | 🔍 Wyszukiwanie | Szukaj pacjentów z debounce (300ms) |
-| 🤖 AI Check-in | Codzienna ocena gotowości z algorytmem adaptive intensity |
-| 🎯 AI Cele | Definiowanie celów z automatycznym generowaniem planów |
-| 💬 AI Chat | Rozmowa z AI asystentem o postępach i ćwiczeniach |
-| 📈 Raporty Postępów | Cotygodniowa analiza z trendami AI |
+| 📝 Check-in | Codzienna ocena gotowości z algorytmem adaptive intensity (reguły, offline) |
+| 🎯 Cele | Definiowanie celów z automatycznym generowaniem planów |
+| 📈 Raporty Postępów | Cotygodniowa analiza trendów (algorytm lokalny) |
+| 📄 Wersja offline | `propozycje-cwiczen.html` — generator w jednym pliku, bez serwera |
 | 📆 Calendar Export | Export do Google/Apple Calendar (.ics) |
 | 📖 API REST | Pełne REST API z paginacją i filtrami |
 | 📚 Swagger/OpenAPI | Dokumentacja API dostępna pod /docs (wymaga logowania) |
@@ -111,7 +114,7 @@ docker-compose up -d
 
 ```bash
 cp .env.example .env
-# Edytuj .env i ustaw AUTH_SECRET, ZAI_API_KEY itp.
+# Edytuj .env i ustaw AUTH_SECRET oraz DEFAULT_ADMIN_PASSWORD
 ```
 
 2. Wygeneruj sekret AUTH_SECRET:
@@ -140,9 +143,10 @@ Domyślne dane po seed:
 |:----:|-------|
 | 1️⃣ | Zaloguj się |
 | 2️⃣ | Dodaj pacjenta |
-| 3️⃣ | Utwórz plan rehabilitacji |
-| 4️⃣ | Przypisz plan pacjentowi |
-| 5️⃣ | Śledź postępy na dashboard |
+| 3️⃣ | **Generator planu** — wybierz region, patologię, fazę, ból i sprzęt |
+| 4️⃣ | Zweryfikuj klinicznie 5 propozycji, popraw w edytorze planu |
+| 5️⃣ | Przypisz plan pacjentowi i wydrukuj (Drukuj / PDF) |
+| 6️⃣ | Śledź postępy na dashboard |
 
 ---
 
@@ -154,9 +158,6 @@ DATABASE_URL="file:./dev.db"
 
 # Authentication (REQUIRED)
 AUTH_SECRET="wygeneruj-openssl-rand-base64-32"
-
-# AI Integration
-ZAI_API_KEY="your-api-key"
 
 # Email (optional)
 SMTP_HOST="smtp.example.com"
@@ -171,7 +172,13 @@ VAPID_SUBJECT=""
 
 # Default Admin Password for seed
 DEFAULT_ADMIN_PASSWORD="your-secure-password"
+
+# Pomijanie logowania — TYLKO lokalnie, świadomy opt-in
+SKIP_AUTH="true"
 ```
+
+> **Uwaga:** aplikacja nie korzysta z żadnych usług AI ani zewnętrznych API.
+> Dane pacjentów nie opuszczają Twojego komputera.
 
 Zobacz `.env.example` dla pełnej listy zmiennych.
 
@@ -267,7 +274,7 @@ npm run e2e:headed
 | POST | `/api/diagnoses` | Tworzenie diagnozy |
 | POST | `/api/users` | Tworzenie użytkownika (admin only) |
 | GET | `/api/docs` | Specyfikacja OpenAPI (auth required) |
-| POST | `/api/chat` | AI Chat (max 2000 chars, prompt injection protected) |
+| GET/PUT/DELETE/POST | `/api/clinical-tags` | Scalone tagi kliniczne, nadpisania, własne patologie |
 
 ### Przykłady
 
@@ -288,7 +295,123 @@ Otwórz `http://localhost:3000/docs` w przeglądarce (wymaga zalogowania).
 
 ---
 
+## ⚙️ Generator planu — jak działa
+
+Dobór ćwiczeń jest **w pełni deterministyczny** (zero AI). Wchodzisz na `/plans/generate`,
+podajesz parametry kliniczne, algorytm zwraca 5 ćwiczeń z dawkowaniem.
+
+### Parametry wejściowe
+
+| Parametr | Zakres |
+|----------|--------|
+| Region | 8 regionów (kolano, bark, kręgosłup, biodro, skokowy, nadgarstek, łokieć, szyja) |
+| Patologia | 27 jednostek (PFPS, ACL, łąkotka, zespół podbarkowy, dyskopatia, GTPS, FAI, Achilles, epikondylopatie…) |
+| Faza | 1 – ostra · 2 – przebudowa · 3 – funkcjonalna |
+| Ból | NRS 0–10 |
+| Sprzęt | 10 pozycji (taśma, hantle, stopień, roller…) |
+| Długość | 1–4 tygodnie z automatyczną progresją |
+
+### Reguły algorytmu
+
+**Twarde wykluczenia** (ćwiczenie w ogóle nie wejdzie do puli):
+
+- przeciwwskazanie przypisane do danej patologii (np. przy dyskopatii wypadają ćwiczenia zgięciowe),
+- ból pacjenta przekracza `maxPain` ćwiczenia,
+- trudność wyższa niż limit fazy (faza 1 → tylko poziom 1),
+- brak wymaganego sprzętu.
+
+**Scoring** — patologia zgodna z tagiem `+50`, sam region `+10`, zgodna faza `+25`,
+margines bezpieczeństwa bólowego do `+6`, dopasowanie trudności do fazy `±6`.
+Wybór top 5 z limitami kategorii (maks. 3 siłowe, 2 stretching, 2 mobilność, 1 równowaga),
+co wymusza zbilansowany zestaw.
+
+**Progresja tygodniowa** (konserwatywna, w obrębie jednej fazy):
+
+| Tydzień | Zmiana |
+|:-------:|--------|
+| 1 | Adaptacja — nauka wzorca, kontrola bólu |
+| 2 | +1 seria dla ćwiczeń siłowych (maks. 4), izometria +10 s |
+| 3 | +2 powtórzenia (maks. 15) lub hold +10 s |
+| 4 | Konsolidacja |
+
+> ⚕️ **Wynik generatora to propozycja, nie zalecenie.** Odpowiedzialność kliniczną
+> za plan ponosi fizjoterapeuta — zweryfikuj każdy zestaw przed przekazaniem pacjentowi.
+
+---
+
+## 🏷️ Tagi kliniczne
+
+Mapowanie ćwiczeń na patologie znajduje się w `src/data/clinicalTags.ts` (wartości domyślne).
+Możesz je edytować **z poziomu UI** na stronie `/clinical-tags`:
+
+- zaznaczanie patologii, faz i przeciwwskazań,
+- suwak maksymalnego bólu (NRS),
+- tempo w konwencji **E-P-K-P** (ekscentryk-pauza-koncentryk-pauza), np. `3-0-1-0`,
+- nadpisanie dawkowania (serie / powtórzenia / hold),
+- dodawanie **własnych patologii** do katalogu,
+- przywracanie wartości domyślnych jednym klikiem.
+
+Twoje zmiany zapisują się do `data/clinical-overrides.json` (zapis atomowy) — defaulty w kodzie
+pozostają nietknięte, więc zawsze możesz wrócić do punktu wyjścia. Generator używa wersji scalonej
+(`domyślne + nadpisania`).
+
+**Backup:** plik `data/clinical-overrides.json` to Twoja wiedza kliniczna. Warto go archiwizować.
+Domyślnie **nie jest** w `.gitignore` — jeśli repo jest publiczne, a tagi traktujesz jako know-how,
+odkomentuj odpowiedni wpis w `.gitignore`.
+
+---
+
+## 📄 Wersja offline
+
+`propozycje-cwiczen.html` to samodzielny plik (~300 KB) z wbudowaną bazą ćwiczeń i tym samym
+algorytmem doboru. Działa bez serwera, bez Node, bez internetu — wystarczy otworzyć w przeglądarce.
+
+Zawiera generator, prostą listę pacjentów, zapis zestawów i historię (dane w `localStorage`
+przeglądarki) oraz wydruk z progresją tygodniową.
+
+> 🔒 **RODO:** plik trzyma dane lokalnie w przeglądarce. Jeśli przenosisz go między urządzeniami,
+> używaj inicjałów zamiast pełnych danych osobowych.
+
+Przebudowa po zmianie bazy ćwiczeń lub tagów wymaga ponownego zbundlowania źródeł.
+
+---
+
+## 🖥️ Launcher macOS
+
+`Rehab Planner.app` — bundle do przeciągnięcia do Docka. Klik startuje serwer (jeśli nie działa)
+i otwiera aplikację w przeglądarce. Launcher wykrywa Node z Homebrew i nvm (Dock ma okrojony `PATH`).
+Logi: `~/Library/Logs/RehabPlanner.log`.
+
+Zatrzymanie serwera: `lsof -ti :3000 | xargs kill`
+
+---
+
 ## 🔄 Changelog
+
+### v0.4.0 (2026-07-25) — Generator planów, tagi kliniczne, usunięcie AI
+
+**Nowe funkcje:**
+- ⚙️ **Generator planu** (`/plans/generate`) — deterministyczny dobór 5 ćwiczeń wg patologii, fazy, bólu i sprzętu
+- 📅 **Progresja wielotygodniowa** — plany 1–4 tygodnie z automatycznym wzrostem objętości i intensywności
+- 🏷️ **Moduł tagów klinicznych** (`/clinical-tags`) — edycja mapowań z UI, własne patologie, przywracanie domyślnych
+- 🗂️ **27 jednostek chorobowych** i tagowanie kliniczne 77 ćwiczeń (fazy, maxPain, tempo, przeciwwskazania)
+- 🖨️ **Wydruk dla pacjenta** — czarno-biała rozpiska planu tydzień po tygodniu
+- ▶️ **Linki wideo** przy każdym ćwiczeniu
+- 📄 **Wersja offline** — `propozycje-cwiczen.html`, generator w jednym pliku HTML
+- 🖥️ **Launcher macOS** — `Rehab Planner.app` do Docka
+
+**Usunięte:**
+- ❌ **Cały moduł AI** — `/api/chat`, `src/lib/openai.ts`, zależność `openai`, klucz `ZAI_API_KEY`.
+  Powód: dane szczególnej kategorii (art. 9 RODO) trafiały do zewnętrznego dostawcy.
+  Aplikacja działa teraz w 100% lokalnie.
+
+**Poprawki bezpieczeństwa:**
+- 🔒 `SKIP_AUTH` zmienione z opt-out na **opt-in** — pominięcie logowania wymaga jawnego `SKIP_AUTH=true`
+- 🔒 `prisma/dev.db` usunięta ze śledzenia w gicie — baza z danymi pacjentów nie trafia do repozytorium
+- 🐛 Naprawiony crash builda w `/api/push` przy placeholderowych kluczach VAPID
+
+**Testy:** 16 testów jednostkowych (generator, progresja, scalanie tagów), pokrycie wszystkich 27 patologii.
+
 
 ### v0.3.0 (2026-03-23) - Security Hardening & Code Quality
 

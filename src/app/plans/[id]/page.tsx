@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Layout } from '@/components/layout/Layout';
 import { useApp } from '@/context/AppContext';
 import { Exercise } from '@/types';
+import { ytSearchUrl } from '@/data/clinicalTags';
 
 const dayNames = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela'];
 const dayNamesShort = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'];
@@ -78,7 +79,7 @@ export default function PlanDetailPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 print:hidden">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Link
@@ -111,7 +112,13 @@ export default function PlanDetailPage() {
               </p>
             )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 print:hidden">
+            <button
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 px-4 py-2 border border-white/20 text-white/70 font-medium rounded-lg hover:bg-white/10 transition-all"
+            >
+              🖨 Drukuj / PDF
+            </button>
             {plan.status === 'template' && (
               <Link
                 href={`/plans/${plan.id}/edit`}
@@ -137,7 +144,59 @@ export default function PlanDetailPage() {
           </div>
         </div>
 
-        <div className="glass-card rounded-xl overflow-hidden border border-neon-cyan/20">
+        {/* ===== WERSJA DO WYDRUKU (dla pacjenta) ===== */}
+        <div className="hidden print:block text-black">
+          <h1 className="text-2xl font-bold mb-1">{plan.name}</h1>
+          {patient && (
+            <p className="text-sm mb-1">
+              Pacjent: {patient.firstName} {patient.lastName}
+            </p>
+          )}
+          <p className="text-sm mb-4">
+            Data: {new Date().toLocaleDateString('pl-PL')}
+            {plan.description && ` · ${plan.description}`}
+          </p>
+          {plan.weeks.map((week) => (
+            <div key={week.weekNumber} className="mb-5" style={{ breakInside: 'avoid' }}>
+              <h2 className="text-lg font-bold border-b border-black pb-1 mb-2">
+                Tydzień {week.weekNumber}
+                {week.focus && <span className="font-normal text-sm"> — {week.focus}</span>}
+              </h2>
+              {week.days
+                .filter((d) => d.exercises.length > 0)
+                .map((day, di) => (
+                  <div key={di} className="mb-3">
+                    <h3 className="font-semibold text-sm mb-1">{dayNames[day.dayNumber - 1]}</h3>
+                    <table className="w-full text-sm border-collapse">
+                      <tbody>
+                        {day.exercises.map((planEx, ei) => {
+                          const ex = getExerciseById(planEx.exerciseId);
+                          if (!ex) return null;
+                          return (
+                            <tr key={ei} className="border-b border-gray-300 align-top">
+                              <td className="py-1 pr-2 font-medium w-[30%]">{ex.name}</td>
+                              <td className="py-1 pr-2 whitespace-nowrap w-[18%]">
+                                {planEx.sets} × {planEx.reps}
+                                {planEx.holdSeconds ? ` (${planEx.holdSeconds}s)` : ''}
+                                {planEx.notes ? <div className="text-xs">{planEx.notes}</div> : null}
+                              </td>
+                              <td className="py-1 text-xs text-gray-700">{ex.description}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+            </div>
+          ))}
+          <p className="text-xs text-gray-600 mt-4">
+            Wykonuj ćwiczenia zgodnie z zaleceniami fizjoterapeuty. W razie nasilenia bólu przerwij
+            i skontaktuj się z terapeutą.
+          </p>
+        </div>
+
+        <div className="glass-card rounded-xl overflow-hidden border border-neon-cyan/20 print:hidden">
           <div className="p-4 border-b border-neon-cyan/10">
             <div className="flex items-center gap-2">
               {plan.weeks.map((week, index) => (
@@ -186,6 +245,14 @@ export default function PlanDetailPage() {
                             {planEx.notes && (
                               <p className="text-gray-500 mt-1 italic">{planEx.notes}</p>
                             )}
+                            <a
+                              href={ytSearchUrl(exercise.name)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block mt-1 text-neon-pink hover:underline"
+                            >
+                              ▶ wideo
+                            </a>
                           </div>
                         );
                       })
@@ -202,7 +269,7 @@ export default function PlanDetailPage() {
           </div>
         </div>
 
-        <div className="glass-card rounded-lg p-4 border border-neon-cyan/20">
+        <div className="glass-card rounded-lg p-4 border border-neon-cyan/20 print:hidden">
           <h3 className="font-medium text-white mb-2">Podsumowanie planu</h3>
           <div className="flex flex-wrap gap-6 text-sm text-gray-400">
             <div className="flex items-center gap-2">

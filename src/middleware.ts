@@ -39,8 +39,8 @@ function isPublicPath(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Skip auth in development mode (set SKIP_AUTH=true in .env for local dev)
-  if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH !== 'false') {
+  // Skip auth in development ONLY when explicitly opted in (SKIP_AUTH=true in .env)
+  if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
     return NextResponse.next()
   }
 

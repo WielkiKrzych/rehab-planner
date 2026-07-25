@@ -130,3 +130,25 @@ input:focus, textarea:focus, select:focus {
 input::placeholder, textarea::placeholder {
   color: rgba(255, 255, 255, 0.3);
 }
+
+/* ===== Wydruk planów dla pacjenta ===== */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  aside,
+  nav,
+  header {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  .glass-card {
+    background: #fff !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+}

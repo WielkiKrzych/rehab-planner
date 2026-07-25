@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/authMiddleware';
 import webpush from 'web-push';
 
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:admin@example.com',
-  process.env.VAPID_PUBLIC_KEY || '',
-  process.env.VAPID_PRIVATE_KEY || ''
-);
+// Konfiguruj VAPID tylko gdy klucze są ustawione — inaczej web-push
+// rzuca wyjątek przy starcie i wywala cały build.
+let vapidConfigured = false;
+try {
+  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || 'mailto:admin@example.com',
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+    vapidConfigured = true;
+  }
+} catch (e) {
+  console.warn('Push notifications disabled: invalid VAPID keys', e);
+}
 
 const pushSubscriptions: Map<string, webpush.PushSubscription> = new Map();
 
@@ -55,8 +65,9 @@ export async function GET() {
 }
 
 export async function sendPushNotification(title: string, body: string, url?: string) {
+  if (!vapidConfigured) return;
   const payload = JSON.stringify({ title, body, url });
-  
+
   for (const subscription of pushSubscriptions.values()) {
     try {
       await webpush.sendNotification(subscription, payload);

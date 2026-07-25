@@ -44,3 +44,14 @@ next-env.d.ts
 
 # Sisyphus working directory
 .sisyphus/
+
+# baza lokalna — dane pacjentów NIE trafiają do repo
+prisma/dev.db
+prisma/*.db
+prisma/*.db-journal
+
+# nadpisania tagów klinicznych (dane praktyki — commituj świadomie, patrz README)
+# data/clinical-overrides.json
+
+# bundle macOS launchera
+*.app/
